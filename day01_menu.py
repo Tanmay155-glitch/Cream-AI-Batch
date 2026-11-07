@@ -47,6 +47,7 @@ while True:
             
     elif choice == "0":
         print("\nThank you for using LeniGuide. Bye!")
+        exit()
         
     else:
         print("\nInvalid option! Please choose 0, 1, 2, or 3.")
