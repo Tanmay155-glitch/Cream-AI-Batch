@@ -13,21 +13,34 @@ def load_records(file_path: Optional[str] = None) -> List[Dict[str, Any]]:
     Load cave records from JSON file.
     
     Args:
-        file_path: Path to JSON file. If None, loads from default location
-                   (data/sample_records.json relative to project root).
+        file_path: Path to JSON file. If None, loads from default location.
+                   Priority: data/records.json (cleaned), then data/sample_records.json (fallback).
     
     Returns:
         List of cave record dictionaries.
     
     Raises:
-        FileNotFoundError: If the specified file does not exist.
+        FileNotFoundError: If no valid records file exists.
         json.JSONDecodeError: If the file contains invalid JSON.
     """
     if file_path is None:
-        # Default path: data/sample_records.json relative to project root
+        # Determine project root
         current_file = Path(__file__)
         project_root = current_file.parent.parent
-        file_path = project_root / "data" / "sample_records.json"
+        
+        # Priority 1: Load from cleaned records.json if it exists
+        cleaned_path = project_root / "data" / "records.json"
+        if cleaned_path.exists():
+            file_path = cleaned_path
+        else:
+            # Priority 2: Fallback to sample_records.json
+            sample_path = project_root / "data" / "sample_records.json"
+            if sample_path.exists():
+                file_path = sample_path
+            else:
+                raise FileNotFoundError(
+                    "No records file found. Expected data/records.json or data/sample_records.json"
+                )
     else:
         file_path = Path(file_path)
     
