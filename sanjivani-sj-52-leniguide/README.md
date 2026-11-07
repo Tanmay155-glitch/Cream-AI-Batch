@@ -57,12 +57,12 @@ sanjivani-sj-52-leniguide/
 └── README.md                   # This file
 ```
 
-## Installation & Setup
+## How to Run
 
-### 1. Create Virtual Environment
+### 1. Setup Virtual Environment
 ```powershell
 # Navigate to project directory
-cd "c:\Users\tanma\OneDrive\Desktop\College\Sem 7\15 Days Course\Projecct track daily\Cream-AI-Batch\sanjivani-sj-52-leniguide"
+cd sanjivani-sj-52-leniguide
 
 # Create virtual environment
 python -m venv .venv
@@ -72,32 +72,95 @@ python -m venv .venv
 
 # If you get execution policy error, run:
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
 
-### 2. Install Dependencies
-```powershell
+# Install all dependencies
 pip install -r requirements.txt
 ```
 
-## Usage
-
-### Test Data Module
+### 2. Data Ingestion Pipeline
 ```powershell
-# Test sample_records.py
-python data\sample_records.py
+# Step 1: Fetch raw data from official sources
+python -m app.fetch
 
-# Test records.py module
-python app\records.py
+# Step 2: Clean and ingest data into records.json
+python -m app.ingest
 ```
 
-### Run CLI Application
+### 3. Data Exploration with Pandas
 ```powershell
-# Method 1: Run as module
+# Run exploratory data analysis
+python analysis\explore.py
+```
+
+This will print 3 key insights:
+- Site distribution (Ajanta vs Ellora)
+- Religious tradition breakdown
+- Visit duration and must-see caves analysis
+
+### 4. Start FastAPI Server
+```powershell
+# Start the API server with auto-reload
+uvicorn app.main:app --reload
+```
+
+The server will start at `http://127.0.0.1:8000`
+
+### 5. Test API Endpoints
+
+**Open Swagger UI:** http://127.0.0.1:8000/docs
+
+**Test endpoints with curl or PowerShell:**
+
+```powershell
+# Health check
+curl http://127.0.0.1:8000/health
+
+# Get all records (limit 5)
+curl "http://127.0.0.1:8000/records?limit=5"
+
+# Get specific cave by ID
+curl http://127.0.0.1:8000/records/Ellora-16
+
+# Search for caves
+curl "http://127.0.0.1:8000/search?q=Kailasa+monolithic+temple"
+
+# Submit a question (POST)
+curl -X POST http://127.0.0.1:8000/questions `
+  -H "Content-Type: application/json" `
+  -d '{\"name\":\"Tanmay\",\"question\":\"Which caves have the best paintings?\"}'
+```
+
+### 6. Run CLI Application
+```powershell
+# Interactive command-line interface
 python -m app.cli
-
-# Method 2: Run directly
-python app\cli.py
 ```
+
+## API Endpoints
+
+### `GET /health`
+Health check endpoint
+- Returns: API status and record count
+
+### `GET /records?limit=20`
+Get all cave records
+- Query params: `limit` (1-100, default: 20)
+- Returns: List of cave records
+
+### `GET /records/{id}`
+Get specific cave by ID
+- Path param: `id` (e.g., "Ajanta-1", "Ellora-16", "1", "16")
+- Returns: Single cave record or 404 if not found
+
+### `GET /search?q=query&limit=5`
+Smart search using TF-IDF + cosine similarity
+- Query params: `q` (search query), `limit` (default: 5)
+- Returns: Ranked list of matching caves with scores
+
+### `POST /questions`
+Submit a question and get cave suggestions
+- Body: `{"name": "User", "question": "Your question?"}`
+- Returns: Question status and top 3 relevant cave suggestions
 
 ### CLI Menu Options
 
