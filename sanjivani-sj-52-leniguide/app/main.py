@@ -72,9 +72,103 @@ smart_search: Optional[SmartSearch] = None
 questions_log: List[Dict[str, Any]] = []
 
 
+def initialize_questions_file():
+    """Initialize questions.json with default 10 LeniGuide questions if not exists."""
+    questions_file = project_root / "data" / "questions.json"
+    
+    if not questions_file.exists():
+        # Default 10 questions for LeniGuide
+        default_questions = [
+            {
+                "id": "Q1",
+                "question": "Which day is Ellora closed? And Ajanta?",
+                "category": "timings_rules",
+                "answerable": True
+            },
+            {
+                "id": "Q2",
+                "question": "What is special about the Kailasa temple in Ellora cave 16?",
+                "category": "architecture_highlights",
+                "answerable": True
+            },
+            {
+                "id": "Q3",
+                "question": "Which caves in Ajanta have the best paintings?",
+                "category": "paintings_murals",
+                "answerable": True
+            },
+            {
+                "id": "Q4",
+                "question": "We are 4 teachers and 40 students under 15 coming on 14-15 December. Which site on which day, and total ticket cost?",
+                "category": "trip_planning_fees",
+                "answerable": True
+            },
+            {
+                "id": "Q5",
+                "question": "Make a 3-hour plan for Ellora covering Buddhist, Hindu and Jain caves.",
+                "category": "itinerary",
+                "answerable": True
+            },
+            {
+                "id": "Q6",
+                "question": "How many tourists visited Ajanta caves last Diwali?",
+                "category": "unanswerable_out_of_scope",
+                "answerable": False
+            },
+            {
+                "id": "Q7",
+                "question": "Which caves in Ajanta and Ellora are Chaitya prayer halls rather than Vihara monasteries, and what makes Cave 10 at Ellora known as the Carpenter's Cave?",
+                "category": "architecture_types",
+                "answerable": True
+            },
+            {
+                "id": "Q8",
+                "question": "Our Class 9 history syllabus covers Digambara Jain rock-cut architecture—which Ellora caves should our students visit to see Indra Sabha and Jagannatha Sabha?",
+                "category": "jain_architecture",
+                "answerable": True
+            },
+            {
+                "id": "Q9",
+                "question": "If our school bus reaches Ajanta at 9:30 AM and we only have 3 hours before lunch, which top 5 must-see caves should we prioritize and how many minutes does each take?",
+                "category": "must_see_planning",
+                "answerable": True
+            },
+            {
+                "id": "Q10",
+                "question": "How much money will our school save per adult teacher if we book ASI tickets online instead of paying cash at the gate for both Ajanta and Ellora?",
+                "category": "cost_optimization",
+                "answerable": True
+            }
+        ]
+        
+        questions_file.parent.mkdir(exist_ok=True)
+        with open(questions_file, 'w', encoding='utf-8') as f:
+            json.dump(default_questions, f, indent=2, ensure_ascii=False)
+        
+        print(f"✓ Initialized {len(default_questions)} default questions")
+
+
+def load_questions():
+    """Load questions from data/questions.json."""
+    global questions_log
+    
+    questions_file = project_root / "data" / "questions.json"
+    
+    if questions_file.exists():
+        try:
+            with open(questions_file, 'r', encoding='utf-8') as f:
+                questions_log = json.load(f)
+            print(f"✓ Loaded {len(questions_log)} questions")
+        except Exception as e:
+            print(f"⚠ Could not load questions: {e}")
+            questions_log = []
+    else:
+        questions_log = []
+
+
 @app.on_event("startup")
 async def startup_event():
-    """Load cave records and initialize search on startup."""
+    """Load cave records, initialize search, and load questions on startup."""
     global records, smart_search
     
     try:
@@ -86,6 +180,10 @@ async def startup_event():
         print(f"✗ Error loading records: {e}")
         records = []
         smart_search = None
+    
+    # Initialize and load questions
+    initialize_questions_file()
+    load_questions()
 
 
 # ============================================================================
@@ -232,6 +330,22 @@ async def search_records(
     return results
 
 
+@app.get("/questions")
+async def get_questions(
+    limit: int = Query(default=100, ge=1, le=1000, description="Maximum questions to return")
+):
+    """
+    Get all submitted questions.
+    
+    Args:
+        limit: Maximum number of questions to return
+    
+    Returns:
+        List of questions
+    """
+    return questions_log[:limit]
+
+
 @app.post("/questions", response_model=QuestionResponse)
 async def submit_question(request: QuestionRequest):
     """
@@ -270,23 +384,14 @@ async def submit_question(request: QuestionRequest):
     }
     questions_log.append(question_entry)
     
-    # Optionally save to file
+    # Save to file
     try:
         questions_file = project_root / "data" / "questions.json"
         questions_file.parent.mkdir(exist_ok=True)
         
-        # Load existing questions if file exists
-        existing_questions = []
-        if questions_file.exists():
-            with open(questions_file, 'r', encoding='utf-8') as f:
-                existing_questions = json.load(f)
-        
-        # Append new question
-        existing_questions.append(question_entry)
-        
-        # Save updated list
+        # Save updated list (append new user-submitted questions only, preserve originals)
         with open(questions_file, 'w', encoding='utf-8') as f:
-            json.dump(existing_questions, f, indent=2, ensure_ascii=False)
+            json.dump(questions_log, f, indent=2, ensure_ascii=False)
     except Exception as e:
         print(f"⚠ Could not save question to file: {e}")
     

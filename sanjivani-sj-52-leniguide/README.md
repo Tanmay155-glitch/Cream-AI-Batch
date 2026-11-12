@@ -16,11 +16,33 @@ LeniGuide is a comprehensive cave-by-cave guide to the UNESCO World Heritage Sit
 ## Features
 
 - **20 Historically Accurate Cave Records** (8 Ajanta + 12 Ellora)
+- **REST API** with 6 endpoints (FastAPI)
+- **Smart Search** using TF-IDF + cosine similarity
 - **Interactive CLI** for browsing and searching caves
-- **Search Functionality** by keywords (e.g., "Buddhist", "Kailasa", "painting")
-- **Category Counts** by site, religion, and period
-- **Cave Lookup** by ID (supports multiple formats)
+- **10 Real User Questions** (Q1-Q10, including guardrail test Q6)
+- **Pandas Data Analysis** with 3 key insights
 - **Official ASI Data** including timings, fees, and weekly closures
+
+## 10 Real LeniGuide User Questions
+
+These questions represent actual queries from our target user (a history teacher planning a school tour):
+
+| ID | Category | Question | Answerable |
+|----|----------|----------|------------|
+| **Q1** | Timings & Rules | Which day is Ellora closed? And Ajanta? | ✅ Yes |
+| **Q2** | Architecture | What is special about the Kailasa temple in Ellora cave 16? | ✅ Yes |
+| **Q3** | Art & Murals | Which caves in Ajanta have the best paintings? | ✅ Yes |
+| **Q4** | Trip Planning | We are 4 teachers and 40 students under 15 coming on 14-15 December. Which site on which day, and total ticket cost? | ✅ Yes |
+| **Q5** | Itinerary | Make a 3-hour plan for Ellora covering Buddhist, Hindu and Jain caves. | ✅ Yes |
+| **Q6** | **Guardrail Test** | **How many tourists visited Ajanta caves last Diwali?** | ❌ **No (out-of-scope)** |
+| **Q7** | Architecture | Which caves are Chaitya halls vs Vihara monasteries? Why is Ellora Cave 10 called Carpenter's Cave? | ✅ Yes |
+| **Q8** | Jain Architecture | Which Ellora caves should students visit to see Indra Sabha and Jagannatha Sabha? | ✅ Yes |
+| **Q9** | Must-See Planning | Which top 5 Ajanta caves to prioritize in 3 hours, and how long for each? | ✅ Yes |
+| **Q10** | Cost Optimization | How much money saved per teacher booking ASI tickets online vs cash? | ✅ Yes |
+
+**Note:** Question 6 (Q6) is the **unanswerable guardrail test** - our system should respond "I don't know" because live visitor statistics are not in the ASI monument database. This prevents hallucinations.
+
+📖 **Learn more:** See [`docs/how_llms_work.md`](docs/how_llms_work.md) for a detailed explanation of LLMs, RAG, and why grounding prevents hallucinations.
 
 ## Domain Rules
 
@@ -45,13 +67,26 @@ LeniGuide is a comprehensive cave-by-cave guide to the UNESCO World Heritage Sit
 
 ```
 sanjivani-sj-52-leniguide/
+├── docs/
+│   └── how_llms_work.md        # Day 5: LLM explanation with diagrams
 ├── data/
-│   ├── sample_records.json    # 20 cave records (JSON format)
-│   └── sample_records.py       # 20 cave records (Python list)
+│   ├── raw/                    # Downloaded HTML files
+│   ├── sample_records.json     # Original 20 cave records
+│   ├── records.json            # Cleaned cave data
+│   └── questions.json          # 10 real user questions
+├── eval/
+│   └── questions.json          # Mirror of questions for testing
 ├── app/
 │   ├── __init__.py             # Package initialization
-│   ├── records.py              # Core data operations module
+│   ├── models.py               # Record dataclass
+│   ├── records.py              # Data operations
+│   ├── smart_search.py         # TF-IDF + cosine similarity
+│   ├── main.py                 # FastAPI REST API (6 endpoints)
+│   ├── fetch.py                # Web data fetcher
+│   ├── ingest.py               # Data cleaning pipeline
 │   └── cli.py                  # Command-line interface
+├── analysis/
+│   └── explore.py              # Pandas data analysis
 ├── requirements.txt            # Python dependencies
 ├── .gitignore                  # Git ignore rules
 └── README.md                   # This file
@@ -161,6 +196,16 @@ Smart search using TF-IDF + cosine similarity
 Submit a question and get cave suggestions
 - Body: `{"name": "User", "question": "Your question?"}`
 - Returns: Question status and top 3 relevant cave suggestions
+
+### `GET /questions`
+Get all submitted questions
+- Query params: `limit` (default: 100)
+- Returns: List of all questions with timestamps
+
+## Documentation
+
+- **[How LLMs Work](docs/how_llms_work.md)** - Complete explanation of Large Language Models from first principles, with diagrams and LeniGuide examples
+- **10 User Questions** - See `data/questions.json` for structured question database
 
 ### CLI Menu Options
 

@@ -1,0 +1,102 @@
+[
+  {
+    "id": "Q1",
+    "question": "Which day is Ellora closed? And Ajanta?",
+    "category": "timings_rules",
+    "expected_caves": [],
+    "answerable": true,
+    "reference_note": "Ellora is closed on Tuesdays. Ajanta is closed on Mondays. This is official ASI policy to allow monument maintenance.",
+    "difficulty": "easy",
+    "requires_reasoning": false
+  },
+  {
+    "id": "Q2",
+    "question": "What is special about the Kailasa temple in Ellora cave 16?",
+    "category": "architecture_highlights",
+    "expected_caves": ["Ellora-16"],
+    "answerable": true,
+    "reference_note": "Cave 16 is the world-famous monolithic Kailasa Temple, carved from a single rock representing Mount Kailasa. Dedicated to Lord Shiva, it features colossal elephants, intricate Ramayana/Mahabharata panels, and the Ravana lifting Mount Kailasa sculpture. Approximately 200,000 tons of rock were excavated.",
+    "difficulty": "easy",
+    "requires_reasoning": false
+  },
+  {
+    "id": "Q3",
+    "question": "Which caves in Ajanta have the best paintings?",
+    "category": "paintings_murals",
+    "expected_caves": ["Ajanta-1", "Ajanta-2", "Ajanta-16", "Ajanta-17"],
+    "answerable": true,
+    "reference_note": "Ajanta Caves 1, 2, 16, and 17 are famous for their exceptional murals. Cave 1 has Padmapani and Vajrapani bodhisattva murals. Cave 2 has well-preserved palace scenes. Cave 16 has the famous 'Dying Princess' mural. Cave 17 has exceptional Jataka tale paintings.",
+    "difficulty": "medium",
+    "requires_reasoning": true
+  },
+  {
+    "id": "Q4",
+    "question": "We are 4 teachers and 40 students under 15 coming on 14-15 December. Which site on which day, and total ticket cost?",
+    "category": "trip_planning_fees",
+    "expected_caves": [],
+    "answerable": true,
+    "reference_note": "December 14-15, 2024: Check if Dec 14 is Monday (Ajanta closed) or Dec 15 is Tuesday (Ellora closed). Cost calculation: 4 teachers × Rs 40 = Rs 160, 40 students under 15 = FREE (ASI policy). Total: Rs 160 per site, Rs 320 for both sites. Recommend: Ajanta on non-Monday day, Ellora on non-Tuesday day.",
+    "difficulty": "hard",
+    "requires_reasoning": true
+  },
+  {
+    "id": "Q5",
+    "question": "Make a 3-hour plan for Ellora covering Buddhist, Hindu and Jain caves.",
+    "category": "itinerary",
+    "expected_caves": ["Ellora-10", "Ellora-16", "Ellora-32"],
+    "answerable": true,
+    "reference_note": "Buddhist: Cave 10 (Vishwakarma/Carpenter's Cave, 35 mins). Hindu: Cave 16 (Kailasa Temple, 90 mins). Jain: Cave 32 (Indra Sabha, 45 mins). Total: ~170 mins + 10 mins walking between caves = 3 hours. This covers all three major religions at Ellora.",
+    "difficulty": "hard",
+    "requires_reasoning": true
+  },
+  {
+    "id": "Q6",
+    "question": "How many tourists visited Ajanta caves last Diwali?",
+    "category": "unanswerable_out_of_scope",
+    "expected_caves": [],
+    "answerable": false,
+    "reference_note": "UNANSWERABLE: This requires live/historical visitor statistics which are not in the static ASI monument database. System must respond with 'I don't know' or 'I don't have visitor statistics.' This tests the guardrail to prevent hallucinations about data not in the knowledge base.",
+    "difficulty": "guardrail_test",
+    "requires_reasoning": false
+  },
+  {
+    "id": "Q7",
+    "question": "Which caves in Ajanta and Ellora are Chaitya prayer halls rather than Vihara monasteries, and what makes Cave 10 at Ellora known as the Carpenter's Cave?",
+    "category": "architecture_types",
+    "expected_caves": ["Ajanta-9", "Ajanta-10", "Ajanta-19", "Ajanta-26", "Ellora-10"],
+    "answerable": true,
+    "reference_note": "Chaitya halls: Ajanta Caves 9, 10, 19, 26 (Buddhist prayer halls with stupas). Ellora Cave 10 (Vishwakarma). Cave 10 at Ellora is called Carpenter's Cave due to its wooden-like carved interior with ribbed vault ceiling resembling wooden beams, featuring a large seated Buddha in teaching posture carved from the stupa itself.",
+    "difficulty": "hard",
+    "requires_reasoning": true
+  },
+  {
+    "id": "Q8",
+    "question": "Our Class 9 history syllabus covers Digambara Jain rock-cut architecture—which Ellora caves should our students visit to see Indra Sabha and Jagannatha Sabha?",
+    "category": "jain_architecture",
+    "expected_caves": ["Ellora-32", "Ellora-33"],
+    "answerable": true,
+    "reference_note": "Indra Sabha: Ellora Cave 32 (finest Jain cave, two-storied with ornate carvings, lotus ceiling, seated Mahavira). Jagannatha Sabha: Ellora Cave 33 (simple pillared hall with Tirthankara figures, umbrella and fly-whisk bearers, elephants and lions at entrance). Both are Digambara sect caves from 9th century CE.",
+    "difficulty": "medium",
+    "requires_reasoning": true
+  },
+  {
+    "id": "Q9",
+    "question": "If our school bus reaches Ajanta at 9:30 AM and we only have 3 hours before lunch, which top 5 must-see caves should we prioritize and how many minutes does each take?",
+    "category": "must_see_planning",
+    "expected_caves": ["Ajanta-1", "Ajanta-2", "Ajanta-16", "Ajanta-17", "Ajanta-26"],
+    "answerable": true,
+    "reference_note": "Top 5 must-see Ajanta caves: Cave 1 (Padmapani murals, 45 mins), Cave 2 (palace paintings, 40 mins), Cave 16 (Dying Princess, 50 mins), Cave 17 (Jataka tales, 45 mins), Cave 26 (reclining Buddha, 40 mins). Total: ~220 mins (3.7 hours). If only 3 hours (180 mins), prioritize Caves 1, 2, 16, 26 (~175 mins).",
+    "difficulty": "hard",
+    "requires_reasoning": true
+  },
+  {
+    "id": "Q10",
+    "question": "How much money will our school save per adult teacher if we book ASI tickets online instead of paying cash at the gate for both Ajanta and Ellora?",
+    "category": "cost_optimization",
+    "expected_caves": [],
+    "answerable": true,
+    "reference_note": "ASI fees: Rs 40 (cash) vs Rs 35 (online) per site per person. Savings per site: Rs 40 - Rs 35 = Rs 5. For both sites (Ajanta + Ellora): Rs 5 × 2 = Rs 10 saved per teacher. For 4 teachers: Rs 10 × 4 = Rs 40 total school savings.",
+    "difficulty": "medium",
+    "requires_reasoning": true
+  }
+]
