@@ -16,7 +16,13 @@ LeniGuide is a comprehensive cave-by-cave guide to the UNESCO World Heritage Sit
 ## Features
 
 - **20 Historically Accurate Cave Records** (8 Ajanta + 12 Ellora)
-- **REST API** with 6 endpoints (FastAPI)
+- **REST API** with 7 endpoints (FastAPI including `POST /chat`)
+- **GenAI / LLM Integration (`app/llm.py`)**: Multi-provider wrapper (Groq LLaMA 3.1 & Google Gemini) with safe deterministic fallback
+- **Prompt Engineering Architecture (`prompts/`)**:
+  - `system_prompt.txt`: ASI authority rules, weekly closures, Rs 40/35 fees, under-15 free, Q6 guardrail
+  - `task_cave_qa.txt`: Cave-by-cave factual inquiries & architectural verification
+  - `task_tour_planner.txt`: Time-boxed itineraries & school tour budget calculations
+- **Prompt Benchmark Report (`eval/prompt_compare.md`)**: Empirical evaluation of Prompt v1 vs Prompt v2 across 10 questions
 - **Smart Search** using TF-IDF + cosine similarity
 - **Interactive CLI** for browsing and searching caves
 - **10 Real User Questions** (Q1-Q10, including guardrail test Q6)
@@ -260,25 +266,85 @@ Get all submitted questions
 }
 ```
 
-## Git Commands
+## Day 6: Talking to an LLM from Code & Prompt Engineering
 
-### Initial Setup
-```powershell
-# Initialize repository (if not already done)
-git init
-git remote add origin https://github.com/YOUR_USERNAME/sanjivani-sj-52-leniguide.git
+### Architecture Overview
+Day 6 integrates an enterprise-grade LLM wrapper (`app/llm.py`) with FastAPI (`POST /chat`) and domain-anchored prompt engineering templates (`prompts/`).
+
+```
+sanjivani-sj-52-leniguide/
+├── .env.example              # Environment configuration template (committed)
+├── .gitignore                # Strictly excludes .env and .venv/
+├── prompts/
+│   ├── system_prompt.txt     # Master persona, ASI rules, JSON schema, Q6 guardrail
+│   ├── task_cave_qa.txt      # Task prompt 1: Factual cave inquiries & ASI fee verification
+│   └── task_tour_planner.txt # Task prompt 2: School study tour & 3-hour route planning
+├── app/
+│   ├── llm.py                # Multi-provider LLM client (Groq & Gemini REST) + fallback
+│   └── main.py               # FastAPI application with POST /chat endpoint
+└── eval/
+    └── prompt_compare.md     # 10-question empirical comparison: Prompt v1 vs Prompt v2
 ```
 
-### Day 2 Commit
+### LLM Setup & Configuration
+1. Copy `.env.example` to `.env` (never committed to git):
+   ```bash
+   cp .env.example .env
+   ```
+2. Configure your API key (Groq or Gemini) in `.env`:
+   ```env
+   LLM_PROVIDER=groq
+   GROQ_API_KEY=gsk_your_groq_api_key_here
+   GROQ_MODEL=llama-3.1-8b-instant
+   ```
+3. If no key is set or offline, LeniGuide uses a deterministic rule-and-record fallback based on official ASI data.
+
+### Day 6 API Endpoint: `POST /chat`
+- **Request:**
+  ```json
+  {
+    "question": "Which day is Ellora closed? And Ajanta?",
+    "task": "cave_qa"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "answer": "According to official ASI rules:\n1. Ellora Caves: Strictly CLOSED ON TUESDAYS. Open Wednesday to Monday from Sunrise to Sunset.\n2. Ajanta Caves: Strictly CLOSED ON MONDAYS. Open Tuesday to Sunday from 9:00 AM to 5:00 PM.",
+    "confidence": "high",
+    "follow_up": "What dates are you planning your visit so we can verify there are no closure conflicts?",
+    "sources": ["Ajanta-1", "Ellora-16"],
+    "task": "cave_qa"
+  }
+  ```
+
+### Day 6 Testing Checklist
+- [x] `.env.example` committed with placeholder keys
+- [x] `.gitignore` verified to block `.env` and `.venv/`
+- [x] `prompts/system_prompt.txt` created with ASI domain rules and JSON schema
+- [x] `prompts/task_cave_qa.txt` created for cave-by-cave inquiries
+- [x] `prompts/task_tour_planner.txt` created for itinerary planning
+- [x] `app/llm.py` implemented with Groq, Gemini, and offline rule-based fallback
+- [x] `POST /chat` endpoint added to `app/main.py` returning `{answer, confidence, follow_up}`
+- [x] Q4 group ticket math verified (40 students under 15 FREE; 4 teachers Rs 160 cash / Rs 140 online per site)
+- [x] Q6 guardrail verified (responds "I don't know" with `confidence: "low"` for Diwali footfall)
+- [x] `eval/prompt_compare.md` created with comprehensive 10-question benchmark
+
+## Git Commands
+
+### Day 6 Commit
 ```powershell
-# Stage all files
-git add .
+# Verify .env is NOT tracked
+git status
+
+# Stage Day 6 files
+git add .env.example .gitignore prompts/ app/llm.py app/main.py eval/prompt_compare.md requirements.txt README.md
 
 # Commit with required prefix
-git commit -m "day-02: Add 20 cave records and CLI application"
+git commit -m "day-06: Add LLM provider wrapper, prompt engineering templates, POST /chat endpoint, and prompt evaluation report"
 
 # Push to GitHub
-git push -u origin main
+git push origin main
 ```
 
 ## Testing Checklist

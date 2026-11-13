@@ -1,37 +1,61 @@
+# ============================================================================
+# LeniGuide Git Ignore Rules
+# Project: SJ-52 | Student: Tanmay Subhash Gawali (2124UMLM2016)
+# ============================================================================
+
 # Virtual environments
 .venv/
 venv/
 env/
 ENV/
+env.bak/
+venv.bak/
 
-# Environment variables
+# Environment variables & secrets (CRITICAL: Never commit keys)
 .env
+.env.*
 .env.local
+.env.development.local
+.env.test.local
+.env.production.local
+!.env.example
 
-# Python cache
+# Python cache & compiled bytecode
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
+*.pyd
 
-# Testing
+# Testing & Coverage
 .pytest_cache/
 .coverage
 htmlcov/
 .tox/
+.hypothesis/
 
-# IDE
+# IDE & Editor files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
-# OS
+# OS artifacts
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Distribution / packaging
 build/
 dist/
 *.egg-info/
+*.egg
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg

@@ -304,15 +304,36 @@ git push origin main
 
 ---
 
-### 📋 DAY 6-7: Machine Learning Integration
-**Date Planned:** [Add Date]  
-**Status:** 🔄 PENDING
+### ✅ DAY 6: Talking to an LLM & Prompt Engineering
+**Date Completed:** 13-11-2026  
+**Status:** ✅ COMPLETED
 
-**Planned Tasks:**
-- [ ] Cave recommendation system
-- [ ] Time estimation ML model
-- [ ] Crowd prediction features
-- [ ] User preference learning
+#### Session 1 (S1): Environment Configuration & LLM Wrapper
+**Files:** `.env.example`, `.gitignore`, `app/llm.py`, `requirements.txt`
+
+**Tasks Completed:**
+- [x] Created `.env.example` with configuration template for Groq, Gemini, and hyperparameters
+- [x] Verified `.gitignore` blocks `.env` and `.venv/` strictly
+- [x] Implemented `app/llm.py` supporting Groq and Gemini via direct REST requests
+- [x] Implemented robust offline deterministic fallback preserving ASI domain rules
+- [x] Implemented JSON extractor guaranteeing keys `{"answer", "confidence", "follow_up"}`
+- [x] Added `python-dotenv` to `requirements.txt`
+
+#### Session 2 (S2): Prompt Engineering Templates & Evaluation Benchmark
+**Files:** `prompts/system_prompt.txt`, `prompts/task_cave_qa.txt`, `prompts/task_tour_planner.txt`, `app/main.py`, `eval/prompt_compare.md`
+
+**Tasks Completed:**
+- [x] Authored `prompts/system_prompt.txt` with official ASI rules (Ajanta closed Mon, Ellora closed Tue; Rs 40 cash / Rs 35 online; students under 15 FREE; Q6 "I don't know" guardrail)
+- [x] Authored `prompts/task_cave_qa.txt` for cave-by-cave factual inquiries and architectural classifications
+- [x] Authored `prompts/task_tour_planner.txt` for 2-day study tour scheduling and ticket math
+- [x] Added `POST /chat` endpoint to `app/main.py` connecting TF-IDF search, prompts, and LLM output
+- [x] Verified Q4 ticket math (4 teachers: Rs 160 cash / Rs 140 online per site; 40 students under 15: FREE)
+- [x] Verified Q6 guardrail (honestly returns "I don't know" with `confidence: "low"` for Diwali footfall)
+- [x] Conducted comprehensive 10-question evaluation report in `eval/prompt_compare.md` (Prompt v1 vs Prompt v2)
+
+---
+
+### 📋 DAY 7: Vector Embeddings & Advanced Search
 
 ---
 
