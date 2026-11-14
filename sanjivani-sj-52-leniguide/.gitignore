@@ -59,3 +59,13 @@ var/
 sdist/
 develop-eggs/
 .installed.cfg
+
+# Day 7: Heavy model weights & caches (do NOT commit)
+data/chroma_db/
+.cache/
+sentence_transformers_cache/
+torch_cache/
+huggingface/
+*.onnx
+*.bin
+*.safetensors

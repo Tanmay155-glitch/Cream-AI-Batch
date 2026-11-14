@@ -4,7 +4,8 @@ Student: Tanmay Subhash Gawali (Reg No: 2124UMLM2016, Branch: CSE AI & ML)
 Project: SJ-52 | Product: LeniGuide (Ajanta & Ellora UNESCO Heritage Guide)
 
 Provides endpoints for cave record search, retrieval, question logging,
-and GenAI / LLM chat powered by Groq / Gemini with ASI domain grounding.
+GenAI / LLM chat powered by Groq / Gemini with ASI domain grounding,
+and Day 7 semantic search powered by ChromaDB vector store.
 """
 
 import sys
@@ -110,8 +111,8 @@ class ChatResponse(BaseModel):
 
 app = FastAPI(
     title="LeniGuide API",
-    description="Cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites with GenAI Chat",
-    version="1.1.0",
+    description="Cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites with GenAI Chat & Semantic Search",
+    version="1.2.0",
     contact={
         "name": "Tanmay Subhash Gawali",
         "email": "tanmay.gawali@sanjivani.org.in"
@@ -123,6 +124,7 @@ records: List[Dict[str, Any]] = []
 smart_search: Optional[SmartSearch] = None
 questions_log: List[Dict[str, Any]] = []
 llm_client: Optional[LLMClient] = None
+_vector_store_ready: bool = False
 
 
 def initialize_questions_file():
@@ -217,6 +219,30 @@ def load_questions():
         questions_log = []
 
 
+def _ensure_vector_store():
+    """Lazy-initialize the ChromaDB vector store with all LeniGuide chunks."""
+    global _vector_store_ready
+    if _vector_store_ready:
+        return
+
+    try:
+        from app.vectorstore import index_chunks, get_collection, CHROMA_AVAILABLE
+        if CHROMA_AVAILABLE:
+            coll = get_collection()
+            if coll is not None and coll.count() == 0:
+                print("⏳ Indexing chunks into ChromaDB on first request...")
+                index_chunks()
+            _vector_store_ready = True
+            print("✓ Vector store ready")
+        else:
+            # Fallback is transparent — search_similar handles it
+            _vector_store_ready = True
+            print("✓ Vector store ready (in-memory fallback)")
+    except Exception as e:
+        print(f"⚠ Vector store init warning: {e}")
+        _vector_store_ready = True  # Mark ready to avoid repeated failures
+
+
 @app.on_event("startup")
 async def startup_event():
     """Load cave records, initialize search engine, and set up LLM client."""
@@ -238,6 +264,9 @@ async def startup_event():
     initialize_questions_file()
     load_questions()
 
+    # Lazy vector store init (will actually index on first /search/semantic call)
+    _ensure_vector_store()
+
 
 # ============================================================================
 # API Endpoints
@@ -250,12 +279,13 @@ async def root():
         "product": "LeniGuide",
         "project_id": "SJ-52",
         "student": "Tanmay Subhash Gawali (2124UMLM2016)",
-        "description": "Cave-by-cave guide to Ajanta and Ellora caves with GenAI Assistant",
+        "description": "Cave-by-cave guide to Ajanta and Ellora caves with GenAI Assistant & Semantic Search",
         "endpoints": {
             "health": "/health",
             "records": "/records?limit=20",
             "record_by_id": "/records/{id}",
             "search": "/search?q=Kailasa",
+            "semantic_search": "/search/semantic?q=monolithic+temple [Day 7]",
             "questions": "/questions (GET, POST)",
             "chat": "/chat (POST) [Day 6 GenAI Chat]",
             "stats": "/stats",
@@ -267,12 +297,25 @@ async def root():
 @app.get("/health")
 async def health_check():
     """Health check endpoint reporting system status."""
+    vector_store_status = "unknown"
+    try:
+        from app.vectorstore import CHROMA_AVAILABLE, get_collection
+        if CHROMA_AVAILABLE:
+            coll = get_collection()
+            vector_store_status = f"chromadb ({coll.count()} chunks)" if coll else "chromadb (not initialized)"
+        else:
+            vector_store_status = "in-memory fallback"
+    except Exception:
+        vector_store_status = "unavailable"
+
     return {
         "status": "ok",
         "product": "LeniGuide",
         "project_id": "SJ-52",
         "records_count": len(records),
         "search_enabled": smart_search is not None,
+        "semantic_search_enabled": _vector_store_ready,
+        "vector_store": vector_store_status,
         "chat_enabled": True,
         "llm_provider": llm_client.provider if llm_client else "offline_rule_based",
         "timestamp": datetime.now().isoformat()
@@ -390,6 +433,69 @@ async def search_records(
     return smart_search.search(q, top_k=limit)
 
 
+# ============================================================================
+# Day 7: Semantic Search Endpoint
+# ============================================================================
+
+@app.get("/search/semantic")
+async def semantic_search_endpoint(
+    q: str = Query(..., description="Natural language semantic search query"),
+    limit: int = Query(default=5, ge=1, le=20, description="Maximum results to return"),
+    top_k: Optional[int] = Query(default=None, ge=1, le=20, description="Alias for limit"),
+    site: Optional[str] = Query(default=None, description="Optional filter: Ajanta or Ellora"),
+):
+    """
+    Day 7 Semantic Search Endpoint.
+
+    Searches the LeniGuide vector store using dense embeddings (SentenceTransformer
+    or TF-IDF/SVD fallback) and ChromaDB for persistent indexing.
+
+    Returns the top-k most semantically similar chunks with scores and metadata.
+    """
+    _ensure_vector_store()
+
+    effective_top_k = top_k or limit
+
+    try:
+        from app.vectorstore import search_similar
+        results = search_similar(query=q, top_k=effective_top_k, site=site)
+    except Exception as e:
+        # Ultimate fallback: use in-memory embed search
+        try:
+            from app.embed import semantic_search
+            results = semantic_search(q, top_k=effective_top_k)
+        except Exception as e2:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Semantic search failed: {e2}"
+            )
+
+    # Format response
+    formatted_results = []
+    for r in results:
+        meta = r.get("metadata", {})
+        formatted_results.append({
+            "chunk_id": r.get("chunk_id", ""),
+            "title": r.get("title", ""),
+            "text": r.get("text", ""),
+            "source": r.get("source", ""),
+            "page": r.get("page", 1),
+            "site": meta.get("site", ""),
+            "cave_no": meta.get("cave_no", ""),
+            "score": r.get("score", 0.0),
+        })
+
+    return {
+        "query": q,
+        "count": len(formatted_results),
+        "results": formatted_results,
+    }
+
+
+# ============================================================================
+# Questions & Stats Endpoints
+# ============================================================================
+
 @app.get("/questions")
 async def get_questions(
     limit: int = Query(default=100, ge=1, le=1000, description="Maximum questions to return")
@@ -465,12 +571,23 @@ async def get_stats():
 
         religion_counts[religion] = religion_counts.get(religion, 0) + 1
 
+    # Vector store stats
+    vector_count = 0
+    try:
+        from app.vectorstore import CHROMA_AVAILABLE, get_collection
+        if CHROMA_AVAILABLE:
+            coll = get_collection()
+            vector_count = coll.count() if coll else 0
+    except Exception:
+        pass
+
     return {
         "total_records": len(records),
         "caves_by_site": site_counts,
         "caves_by_religion": religion_counts,
+        "vector_chunks_indexed": vector_count,
         "questions_received": len(questions_log),
-        "api_version": "1.1.0"
+        "api_version": "1.2.0"
     }
 
 
@@ -511,11 +628,12 @@ async def internal_error_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     print("=" * 80)
-    print("LENIGUIDE FASTAPI SERVER (DAY 6)")
+    print("LENIGUIDE FASTAPI SERVER (DAY 7)")
     print("Student: Tanmay Subhash Gawali (SJ-52)")
     print("=" * 80)
     print("\nStarting server at http://127.0.0.1:8000")
     print("API Documentation: http://127.0.0.1:8000/docs")
+    print("Semantic Search: http://127.0.0.1:8000/search/semantic?q=Kailasa+temple")
     print("=" * 80)
     
     uvicorn.run(
