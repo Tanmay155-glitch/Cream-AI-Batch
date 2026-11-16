@@ -356,9 +356,9 @@ def answer_question(
         site_filter=site_filter
     )
 
-    # Guardrail Check 2: Low-similarity score threshold (< 0.22)
+    # Guardrail Check 2: Low-similarity score threshold (< 0.18)
     top_score = retrieved_chunks[0].get("rerank_score", 0.0) if retrieved_chunks else 0.0
-    if not retrieved_chunks or top_score < 0.22:
+    if not retrieved_chunks or top_score < 0.18:
         elapsed_ms = round((time.time() - start_time) * 1000, 2)
         return {
             "question": q_clean,

@@ -4,7 +4,7 @@
 - **Project ID:** SJ-52
 - **Product Name:** LeniGuide
 - **Repository:** `sanjivani-sj-52-leniguide`
-- **Generated:** 2026-11-16 10:47
+- **Generated:** 2026-11-16 11:34
 - **Benchmark:** `eval/eval_set.json` (15 total evaluation rows)
 
 ## Executive Summary
@@ -28,7 +28,7 @@ We evaluated **two distinct RAG architectures** across the 15-row LeniGuide benc
 | **Fact & Keyword Accuracy** | 76.2% | **76.2%** | +0.0% |
 | **Citation Rate (Valid ASI Source)** | 100.0% | **100.0%** | +0.0% |
 | **Guardrail Abstention (Q6 & Q15)** | 100.0% | **100.0%** | 0.0% (Tied) |
-| **Average Latency (ms)** | 6.3 ms | 4.7 ms | +-1.6 ms |
+| **Average Latency (ms)** | 6.0 ms | 2.6 ms | +-3.4 ms |
 | **OVERALL RAG SCORE** | 86.9% | **92.9%** | **+6.0%** |
 
 ---
@@ -37,20 +37,20 @@ We evaluated **two distinct RAG architectures** across the 15-row LeniGuide benc
 
 | ID | Question | Expected Caves / Target | Hit | Keywords Matched | Citations | Abstained | Latency |
 |:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|
-| **Q1** | Which day is Ellora closed? And Ajanta?... | Answerable | ✅ | 2/2 | ✅ Yes | No | 45.1 ms |
-| **Q2** | What is special about the Kailasa temple in E... | Answerable | ✅ | 4/4 | ✅ Yes | No | 2.7 ms |
-| **Q3** | Which caves in Ajanta have the best paintings... | Answerable | ✅ | 5/5 | ✅ Yes | No | 1.8 ms |
-| **Q4** | We are 4 teachers and 40 students under 15 co... | Answerable | ✅ | 6/6 | ✅ Yes | No | 1.9 ms |
-| **Q5** | Make a 3-hour plan for Ellora covering Buddhi... | Answerable | ✅ | 6/6 | ✅ Yes | No | 1.8 ms |
+| **Q1** | Which day is Ellora closed? And Ajanta?... | Answerable | ✅ | 2/2 | ✅ Yes | No | 25.9 ms |
+| **Q2** | What is special about the Kailasa temple in E... | Answerable | ✅ | 4/4 | ✅ Yes | No | 0.9 ms |
+| **Q3** | Which caves in Ajanta have the best paintings... | Answerable | ✅ | 5/5 | ✅ Yes | No | 2.0 ms |
+| **Q4** | We are 4 teachers and 40 students under 15 co... | Answerable | ✅ | 6/6 | ✅ Yes | No | 1.0 ms |
+| **Q5** | Make a 3-hour plan for Ellora covering Buddhi... | Answerable | ✅ | 6/6 | ✅ Yes | No | 1.0 ms |
 | **Q6** | How many tourists visited Ajanta caves last D... | Unanswerable | ✅ | 1/1 | N/A (abstained) | ✅ Yes (Guardrail) | 0.0 ms |
-| **Q7** | Which caves in Ellora belong to the Jain trad... | Answerable | ✅ | 6/7 | ✅ Yes | No | 1.9 ms |
-| **Q8** | Which are the oldest Hinayana Buddhist chaity... | Answerable | ✅ | 6/6 | ✅ Yes | No | 3.0 ms |
-| **Q9** | Why is Ellora Cave 10 called the Vishwakarma ... | Answerable | ✅ | 3/4 | ✅ Yes | No | 2.7 ms |
-| **Q10** | Some travel blogs say the entry ticket for Aj... | Answerable | ✅ | 2/4 | ✅ Yes | No | 1.8 ms |
-| **Q11** | What is the famous sculpture inside Ajanta Ca... | Answerable | ✅ | 0/4 | ✅ Yes | No | 2.1 ms |
-| **Q12** | Which cave in Ellora features the Dashavatara... | Answerable | ✅ | 2/4 | ✅ Yes | No | 1.9 ms |
-| **Q13** | Tell me about the 'Dying Princess' painting a... | Answerable | ✅ | 2/4 | ✅ Yes | No | 1.8 ms |
-| **Q14** | What are the highlights of Rameshwara (Cave 2... | Answerable | ✅ | 2/5 | ✅ Yes | No | 2.0 ms |
+| **Q7** | Which caves in Ellora belong to the Jain trad... | Answerable | ✅ | 6/7 | ✅ Yes | No | 1.3 ms |
+| **Q8** | Which are the oldest Hinayana Buddhist chaity... | Answerable | ✅ | 6/6 | ✅ Yes | No | 1.0 ms |
+| **Q9** | Why is Ellora Cave 10 called the Vishwakarma ... | Answerable | ✅ | 3/4 | ✅ Yes | No | 0.9 ms |
+| **Q10** | Some travel blogs say the entry ticket for Aj... | Answerable | ✅ | 2/4 | ✅ Yes | No | 0.9 ms |
+| **Q11** | What is the famous sculpture inside Ajanta Ca... | Answerable | ✅ | 0/4 | ✅ Yes | No | 1.1 ms |
+| **Q12** | Which cave in Ellora features the Dashavatara... | Answerable | ✅ | 2/4 | ✅ Yes | No | 0.9 ms |
+| **Q13** | Tell me about the 'Dying Princess' painting a... | Answerable | ✅ | 2/4 | ✅ Yes | No | 0.8 ms |
+| **Q14** | What are the highlights of Rameshwara (Cave 2... | Answerable | ✅ | 2/5 | ✅ Yes | No | 0.8 ms |
 | **Q15** | What is the current room tariff at MTDC Resor... | Unanswerable | ✅ | 1/1 | N/A (abstained) | ✅ Yes (Guardrail) | 0.0 ms |
 
 ### Sample RAG Outputs from Config B
