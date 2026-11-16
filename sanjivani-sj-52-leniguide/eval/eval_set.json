@@ -1,0 +1,247 @@
+[
+  {
+    "id": "Q1",
+    "question": "Which day is Ellora closed? And Ajanta?",
+    "expected_keywords": [
+      "Tuesday",
+      "Monday"
+    ],
+    "expected_site": "Both",
+    "expected_caves": [],
+    "answerable": true,
+    "reference_answer": "Ellora Caves are closed on Tuesdays; Ajanta Caves are closed on Mondays as per official ASI rules."
+  },
+  {
+    "id": "Q2",
+    "question": "What is special about the Kailasa temple in Ellora cave 16?",
+    "expected_keywords": [
+      "monolithic",
+      "16",
+      "Rashtrakuta",
+      "Krishna I"
+    ],
+    "expected_site": "Ellora",
+    "expected_caves": [
+      "16"
+    ],
+    "answerable": true,
+    "reference_answer": "Ellora Cave 16 is the world-famous Kailasa Temple, the largest monolithic rock-cut monument carved top-down from single basalt rock under Rashtrakuta King Krishna I."
+  },
+  {
+    "id": "Q3",
+    "question": "Which caves in Ajanta have the best paintings?",
+    "expected_keywords": [
+      "1",
+      "2",
+      "16",
+      "17",
+      "Padmapani"
+    ],
+    "expected_site": "Ajanta",
+    "expected_caves": [
+      "1",
+      "2",
+      "16",
+      "17"
+    ],
+    "answerable": true,
+    "reference_answer": "Ajanta Caves 1, 2, 16, and 17 feature the finest preserved murals, including Padmapani, Vajrapani, and Jataka tales."
+  },
+  {
+    "id": "Q4",
+    "question": "We are 4 teachers and 40 students under 15 coming on 14-15 December. Which site on which day, and total ticket cost?",
+    "expected_keywords": [
+      "Monday",
+      "Ellora",
+      "Ajanta",
+      "free",
+      "160",
+      "140"
+    ],
+    "expected_site": "Both",
+    "expected_caves": [],
+    "answerable": true,
+    "reference_answer": "Visit Ajanta on non-Monday and Ellora on non-Tuesday. 40 students under 15 enter FREE. 4 teachers cost Rs 160 cash (Rs 40x4) or Rs 140 online (Rs 35x4) per site; total Rs 320 cash or Rs 280 online for both sites."
+  },
+  {
+    "id": "Q5",
+    "question": "Make a 3-hour plan for Ellora covering Buddhist, Hindu and Jain caves.",
+    "expected_keywords": [
+      "10",
+      "16",
+      "32",
+      "Buddhist",
+      "Hindu",
+      "Jain"
+    ],
+    "expected_site": "Ellora",
+    "expected_caves": [
+      "10",
+      "16",
+      "32"
+    ],
+    "answerable": true,
+    "reference_answer": "Spend 90 minutes at Cave 16 Kailasa (Hindu), 35 minutes at Cave 10 Vishwakarma (Buddhist), and 45 minutes at Cave 32 Indra Sabha (Jain), plus 10 minutes walking buffer for 180 minutes total."
+  },
+  {
+    "id": "Q6",
+    "question": "How many tourists visited Ajanta caves last Diwali?",
+    "expected_keywords": [
+      "I don't know"
+    ],
+    "expected_site": "Ajanta",
+    "expected_caves": [],
+    "answerable": false,
+    "reference_answer": "I don't know based on the official ASI records provided. Static monument databases do not track seasonal tourist footfall statistics."
+  },
+  {
+    "id": "Q7",
+    "question": "Which caves in Ellora belong to the Jain tradition, and what are the main highlights of Indra Sabha (Cave 32)?",
+    "expected_keywords": [
+      "30",
+      "32",
+      "33",
+      "34",
+      "Digambara",
+      "Matanga",
+      "Ambika"
+    ],
+    "expected_site": "Ellora",
+    "expected_caves": [
+      "30",
+      "32",
+      "33",
+      "34"
+    ],
+    "answerable": true,
+    "reference_answer": "Ellora Caves 30 to 34 represent Digambara Jain tradition. Cave 32 Indra Sabha is a two-storied shrine with monolithic elephant, carved lotus ceiling, seated Mahavira, and yakshas Matanga and Ambika."
+  },
+  {
+    "id": "Q8",
+    "question": "Which are the oldest Hinayana Buddhist chaitya halls in Ajanta, and how do they differ from Mahayana caves like Cave 19 and Cave 26?",
+    "expected_keywords": [
+      "9",
+      "10",
+      "Hinayana",
+      "19",
+      "26",
+      "Mahayana"
+    ],
+    "expected_site": "Ajanta",
+    "expected_caves": [
+      "9",
+      "10",
+      "19",
+      "26"
+    ],
+    "answerable": true,
+    "reference_answer": "Ajanta Caves 9 and 10 are Hinayana chaityas (~2nd-1st c. BCE) with plain monolithic stupas, whereas Mahayana Caves 19 and 26 feature elaborate facades with sculpted Buddha icons on the stupas."
+  },
+  {
+    "id": "Q9",
+    "question": "Why is Ellora Cave 10 called the Vishwakarma or Carpenter's Cave, and how long does it take to visit?",
+    "expected_keywords": [
+      "10",
+      "Vishwakarma",
+      "wooden",
+      "20 mins"
+    ],
+    "expected_site": "Ellora",
+    "expected_caves": [
+      "10"
+    ],
+    "answerable": true,
+    "reference_answer": "Ellora Cave 10 is called Vishwakarma or Carpenter's Cave because its ribbed rock vault was carved to mimic wooden timber beams. A typical visit takes around 20 to 35 minutes."
+  },
+  {
+    "id": "Q10",
+    "question": "Some travel blogs say the entry ticket for Ajanta and Ellora is Rs 10 or Rs 30. What is the official ASI ticket price for Indian citizens paying online versus cash?",
+    "expected_keywords": [
+      "40",
+      "35",
+      "free",
+      "15"
+    ],
+    "expected_site": "Both",
+    "expected_caves": [],
+    "answerable": true,
+    "reference_answer": "The official ASI ticket price for Indian adults is Rs 40 in cash at the gate or Rs 35 when booked online. Children under 15 years enter FREE."
+  },
+  {
+    "id": "Q11",
+    "question": "What is the famous sculpture inside Ajanta Cave 26 and what period does it belong to?",
+    "expected_keywords": [
+      "Mahaparinirvana",
+      "Reclining Buddha",
+      "26",
+      "Mahayana"
+    ],
+    "expected_site": "Ajanta",
+    "expected_caves": [
+      "26"
+    ],
+    "answerable": true,
+    "reference_answer": "Ajanta Cave 26 features a majestic 7-meter Reclining Buddha in Mahaparinirvana pose, belonging to the Mahayana Buddhist phase (~5th century CE)."
+  },
+  {
+    "id": "Q12",
+    "question": "Which cave in Ellora features the Dashavatara panels and the sculpture of Narasimha slaying Hiranyakashipu?",
+    "expected_keywords": [
+      "15",
+      "Dashavatara",
+      "Rashtrakuta",
+      "Dantidurga"
+    ],
+    "expected_site": "Ellora",
+    "expected_caves": [
+      "15"
+    ],
+    "answerable": true,
+    "reference_answer": "Ellora Cave 15 (Dashavatara Cave), dating to 8th century CE under Rashtrakuta King Dantidurga, features dramatic relief panels of Vishnu's avatars including Narasimha."
+  },
+  {
+    "id": "Q13",
+    "question": "Tell me about the 'Dying Princess' painting and Varahadeva inscription—which Ajanta cave are they in?",
+    "expected_keywords": [
+      "16",
+      "Dying Princess",
+      "Varahadeva",
+      "Vakataka"
+    ],
+    "expected_site": "Ajanta",
+    "expected_caves": [
+      "16"
+    ],
+    "answerable": true,
+    "reference_answer": "The 'Dying Princess' (Sundari) mural and the Varahadeva Sanskrit inscription are in Ajanta Cave 16, created under Vakataka patronage."
+  },
+  {
+    "id": "Q14",
+    "question": "What are the highlights of Rameshwara (Cave 21) and Dhumar Lena (Cave 29) in Ellora?",
+    "expected_keywords": [
+      "21",
+      "Ganga",
+      "29",
+      "Dhumar Lena",
+      "Kalachuri"
+    ],
+    "expected_site": "Ellora",
+    "expected_caves": [
+      "21",
+      "29"
+    ],
+    "answerable": true,
+    "reference_answer": "Ellora Cave 21 (Rameshwara) features river goddess Ganga on a crocodile, while Cave 29 (Dhumar Lena) is a massive Elephanta-style hall with Ravana shaking Mount Kailasa."
+  },
+  {
+    "id": "Q15",
+    "question": "What is the current room tariff at MTDC Resort near Ajanta Caves for this weekend?",
+    "expected_keywords": [
+      "I don't know"
+    ],
+    "expected_site": "Ajanta",
+    "expected_caves": [],
+    "answerable": false,
+    "reference_answer": "I don't know based on the official ASI records provided. LeniGuide does not track commercial hotel or resort tariffs."
+  }
+]

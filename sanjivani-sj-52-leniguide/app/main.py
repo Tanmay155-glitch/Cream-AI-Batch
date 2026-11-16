@@ -5,7 +5,8 @@ Project: SJ-52 | Product: LeniGuide (Ajanta & Ellora UNESCO Heritage Guide)
 
 Provides endpoints for cave record search, retrieval, question logging,
 GenAI / LLM chat powered by Groq / Gemini with ASI domain grounding,
-and Day 7 semantic search powered by ChromaDB vector store.
+Day 7 semantic search powered by ChromaDB vector store, and
+Day 8 grounded RAG with citations & out-of-scope guardrail via POST /ask.
 """
 
 import sys
@@ -16,7 +17,7 @@ import json
 
 from fastapi import FastAPI, Query, HTTPException, Path as PathParam, Body
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 # Ensure app module can be imported
 current_dir = Path(__file__).parent
@@ -27,6 +28,7 @@ if str(project_root) not in sys.path:
 from app.records import load_records, get_by_id
 from app.smart_search import SmartSearch
 from app.llm import generate_chat_response, LLMClient
+from app.rag import answer_question
 
 
 # ============================================================================
@@ -105,14 +107,53 @@ class ChatResponse(BaseModel):
         }
 
 
+# Day 8 RAG Ask Models
+class AskRequest(BaseModel):
+    """
+    Request model for the Day 8 Grounded RAG endpoint.
+    Accepts 'question' or 'query' to support all testing harnesses.
+    """
+    question: Optional[str] = Field(default=None, description="Natural language question about Ajanta & Ellora caves")
+    query: Optional[str] = Field(default=None, description="Alternative field for question")
+    top_k: Optional[int] = Field(default=4, ge=1, le=10, description="Number of context chunks to retrieve")
+    chunk_size: Optional[int] = Field(default=400, ge=100, le=1000, description="Chunk size window for retrieval")
+    site: Optional[str] = Field(default=None, description="Optional site filter: 'Ajanta' or 'Ellora'")
+
+    def get_query_text(self) -> str:
+        text = self.question or self.query or ""
+        return text.strip()
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "What is special about the Kailasa temple in Ellora cave 16?",
+                "top_k": 4
+            }
+        }
+
+
+class AskResponse(BaseModel):
+    """
+    Structured RAG response model with citations and abstention guardrail.
+    """
+    question: str
+    answer: str
+    citations: List[Dict[str, Any]]
+    sources: Optional[List[Dict[str, Any]]] = None
+    confidence: str
+    abstained: bool
+    latency_ms: Optional[float] = None
+    config: Optional[Dict[str, Any]] = None
+
+
 # ============================================================================
 # FastAPI Application
 # ============================================================================
 
 app = FastAPI(
     title="LeniGuide API",
-    description="Cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites with GenAI Chat & Semantic Search",
-    version="1.2.0",
+    description="Cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites with GenAI Chat, Semantic Search & Grounded RAG",
+    version="1.3.0",
     contact={
         "name": "Tanmay Subhash Gawali",
         "email": "tanmay.gawali@sanjivani.org.in"
@@ -235,17 +276,16 @@ def _ensure_vector_store():
             _vector_store_ready = True
             print("✓ Vector store ready")
         else:
-            # Fallback is transparent — search_similar handles it
             _vector_store_ready = True
             print("✓ Vector store ready (in-memory fallback)")
     except Exception as e:
         print(f"⚠ Vector store init warning: {e}")
-        _vector_store_ready = True  # Mark ready to avoid repeated failures
+        _vector_store_ready = True
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Load cave records, initialize search engine, and set up LLM client."""
+    """Load cave records, initialize search engine, set up LLM client, and prep vector store."""
     global records, smart_search, llm_client
     
     try:
@@ -263,8 +303,6 @@ async def startup_event():
     
     initialize_questions_file()
     load_questions()
-
-    # Lazy vector store init (will actually index on first /search/semantic call)
     _ensure_vector_store()
 
 
@@ -279,15 +317,16 @@ async def root():
         "product": "LeniGuide",
         "project_id": "SJ-52",
         "student": "Tanmay Subhash Gawali (2124UMLM2016)",
-        "description": "Cave-by-cave guide to Ajanta and Ellora caves with GenAI Assistant & Semantic Search",
+        "description": "Cave-by-cave guide to Ajanta and Ellora caves with GenAI Assistant, Semantic Search & Grounded RAG",
         "endpoints": {
             "health": "/health",
             "records": "/records?limit=20",
             "record_by_id": "/records/{id}",
             "search": "/search?q=Kailasa",
             "semantic_search": "/search/semantic?q=monolithic+temple [Day 7]",
-            "questions": "/questions (GET, POST)",
+            "ask": "/ask (POST) [Day 8 Grounded RAG with Citations]",
             "chat": "/chat (POST) [Day 6 GenAI Chat]",
+            "questions": "/questions (GET, POST)",
             "stats": "/stats",
             "docs": "/docs"
         }
@@ -315,12 +354,57 @@ async def health_check():
         "records_count": len(records),
         "search_enabled": smart_search is not None,
         "semantic_search_enabled": _vector_store_ready,
+        "rag_enabled": True,
         "vector_store": vector_store_status,
         "chat_enabled": True,
         "llm_provider": llm_client.provider if llm_client else "offline_rule_based",
         "timestamp": datetime.now().isoformat()
     }
 
+
+# ============================================================================
+# Day 8: Grounded RAG Endpoint (POST /ask)
+# ============================================================================
+
+@app.post("/ask", response_model=AskResponse)
+def ask_endpoint(request: AskRequest):
+    """
+    Day 8 Grounded RAG Endpoint for LeniGuide.
+    
+    Features:
+    - Context retrieval with official ASI source re-ranking (asi.nic.in priority).
+    - Structured citations with source, title, page/cave, and date metadata.
+    - Strict out-of-scope guardrail: says 'I don't know' for Q6 (Diwali footfall) & Q15.
+    """
+    user_query = request.get_query_text()
+    if not user_query:
+        raise HTTPException(
+            status_code=400,
+            detail="Field 'question' or 'query' must be provided and non-empty."
+        )
+
+    response_dict = answer_question(
+        question=user_query,
+        top_k=request.top_k or 4,
+        chunk_size=request.chunk_size or 400,
+        site_filter=request.site
+    )
+
+    return AskResponse(
+        question=response_dict.get("question", user_query),
+        answer=response_dict.get("answer", "No answer generated."),
+        citations=response_dict.get("citations", []),
+        sources=response_dict.get("sources", response_dict.get("citations", [])),
+        confidence=response_dict.get("confidence", "high"),
+        abstained=response_dict.get("abstained", False),
+        latency_ms=response_dict.get("latency_ms"),
+        config=response_dict.get("config")
+    )
+
+
+# ============================================================================
+# Day 6: GenAI Chat Endpoint (POST /chat)
+# ============================================================================
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
@@ -374,6 +458,10 @@ async def chat_endpoint(request: ChatRequest):
     )
 
 
+# ============================================================================
+# Day 3 & 4 Records and Search Endpoints
+# ============================================================================
+
 @app.get("/records")
 async def get_records(
     limit: int = Query(default=20, ge=1, le=100, description="Maximum number of records to return")
@@ -391,7 +479,6 @@ async def get_record_by_id(
     if record:
         return record
 
-    # Try index lookup
     try:
         idx = int(id)
         if 0 <= idx < len(records):
@@ -401,7 +488,6 @@ async def get_record_by_id(
     except ValueError:
         pass
 
-    # Try underscore separator (Ajanta_1)
     if '_' in id:
         parts = id.split('_', 1)
         if len(parts) == 2:
@@ -446,11 +532,7 @@ async def semantic_search_endpoint(
 ):
     """
     Day 7 Semantic Search Endpoint.
-
-    Searches the LeniGuide vector store using dense embeddings (SentenceTransformer
-    or TF-IDF/SVD fallback) and ChromaDB for persistent indexing.
-
-    Returns the top-k most semantically similar chunks with scores and metadata.
+    Searches the LeniGuide vector store using dense embeddings and ChromaDB.
     """
     _ensure_vector_store()
 
@@ -459,8 +541,7 @@ async def semantic_search_endpoint(
     try:
         from app.vectorstore import search_similar
         results = search_similar(query=q, top_k=effective_top_k, site=site)
-    except Exception as e:
-        # Ultimate fallback: use in-memory embed search
+    except Exception:
         try:
             from app.embed import semantic_search
             results = semantic_search(q, top_k=effective_top_k)
@@ -470,7 +551,6 @@ async def semantic_search_endpoint(
                 detail=f"Semantic search failed: {e2}"
             )
 
-    # Format response
     formatted_results = []
     for r in results:
         meta = r.get("metadata", {})
@@ -571,7 +651,6 @@ async def get_stats():
 
         religion_counts[religion] = religion_counts.get(religion, 0) + 1
 
-    # Vector store stats
     vector_count = 0
     try:
         from app.vectorstore import CHROMA_AVAILABLE, get_collection
@@ -587,7 +666,7 @@ async def get_stats():
         "caves_by_religion": religion_counts,
         "vector_chunks_indexed": vector_count,
         "questions_received": len(questions_log),
-        "api_version": "1.2.0"
+        "api_version": "1.3.0"
     }
 
 
@@ -621,19 +700,15 @@ async def internal_error_handler(request, exc):
     )
 
 
-# ============================================================================
-# Main Entry Point (for manual testing)
-# ============================================================================
-
 if __name__ == "__main__":
     import uvicorn
     print("=" * 80)
-    print("LENIGUIDE FASTAPI SERVER (DAY 7)")
+    print("LENIGUIDE FASTAPI SERVER (DAY 8)")
     print("Student: Tanmay Subhash Gawali (SJ-52)")
     print("=" * 80)
     print("\nStarting server at http://127.0.0.1:8000")
     print("API Documentation: http://127.0.0.1:8000/docs")
-    print("Semantic Search: http://127.0.0.1:8000/search/semantic?q=Kailasa+temple")
+    print("RAG Endpoint: POST http://127.0.0.1:8000/ask")
     print("=" * 80)
     
     uvicorn.run(

@@ -330,35 +330,136 @@ sanjivani-sj-52-leniguide/
 - [x] Q6 guardrail verified (responds "I don't know" with `confidence: "low"` for Diwali footfall)
 - [x] `eval/prompt_compare.md` created with comprehensive 10-question benchmark
 
+---
+
+## Day 7: Embeddings, Semantic Search & Vector Store
+
+- **Document Chunking (`app/chunking.py`)**: 68 unique chunks generated preserving `source`, `page`, and `title` metadata across cave records and ASI rules.
+- **Embedding Engine (`app/embed.py`)**: SentenceTransformer primary with deterministic signed-hash dense fallback (256-dim). Cosine similarity search with ASI priority boost.
+- **Persistent Vector Store (`app/vectorstore.py`)**: ChromaDB collection `leniguide_caves` (`data/chroma_db/`) with metadata filtering by site and transparent in-memory fallback.
+- **Semantic Search API**: `GET /search/semantic?q=&limit=&site=` added to `app/main.py`.
+- **Search Evaluation Report (`eval/search_results.md`)**: Documents Top-3 search hits for Q1–Q10, demonstrating out-of-scope score drops on Q6.
+
+---
+
+## Day 8: Grounded RAG Pipeline & Hyperparameter Tuning
+
+### RAG Pipeline Architecture (`app/rag.py`)
+1. **Context Retrieval with ASI Re-Ranking**: Queries regarding visiting fees, timings, or rules automatically boost authoritative `asi.nic.in` sources, ensuring official rates (Rs 40 cash / Rs 35 online, students under 15 FREE) supersede outdated blog mentions.
+2. **Strict Out-of-Scope Guardrails**: Directly catches queries asking for live/historical footfall (Q6: *"How many tourists visited Ajanta caves last Diwali?"*) or commercial hotel rates (Q15: *"room tariff at MTDC Resort"*), returning an honest abstention starting with:
+   > *"I don't know based on the official ASI records provided..."*
+3. **Structured Citation Tracking**: Generates verified source citations including `chunk_id`, `title`, `source`, `page`, `cave_no`, `site`, and `source_date`.
+4. **Endpoint `POST /ask`**: Exposes the grounded RAG pipeline via FastAPI.
+
+### RAG Evaluation & Tuning Winner Table (`eval/run_eval.py`)
+
+Benchmark dataset: [`eval/eval_set.json`](eval/eval_set.json) (15 evaluation rows).
+
+| Metric | Config A (`chunk_size=200, k=2`) | Config B (`chunk_size=450, k=4`) — 🏆 WINNER | Delta / Gain |
+|---|:---:|:---:|:---:|
+| **Retrieval Hit Rate (Recall@K)** | 80.0% | **100.0%** | **+20.0%** |
+| **Fact & Keyword Accuracy** | 76.2% | **76.2%** | 0.0% (Tied) |
+| **Citation Rate (Valid ASI Source)** | 100.0% | **100.0%** | 0.0% (Tied) |
+| **Guardrail Abstention (Q6 & Q15)** | 100.0% | **100.0%** | 0.0% (Tied) |
+| **Average Latency (ms)** | 6.3 ms | **4.7 ms** | -1.6 ms |
+| **OVERALL RAG SCORE** | 86.9% | **92.9%** | **+6.0%** |
+
+#### Why Config B Won
+1. **Multi-Cave Synthesis (Q3, Q5, Q7)**: Queries spanning Buddhist, Hindu, and Jain caves (such as Ellora Caves 10, 16, and 32 in Q5) require `top_k=4` to bring all relevant traditions into context. Narrow `top_k=2` truncates context and drops Cave 10 or Cave 32.
+2. **Context Coherence**: A cave's architectural highlights and visit guidance comprise ~300–420 characters. Config A's 200-character chunking fragments sentences and separates fee rules from cave summaries.
+3. **Guardrail Integrity**: Both configurations achieved 100% on guardrail abstention (saying *"I don't know"* for Q6 and Q15).
+
+📖 **Detailed Report:** See [`eval/eval_results.md`](eval/eval_results.md) for full row-by-row metrics and outputs.
+
+---
+
+### Day 8 API Usage: `POST /ask`
+
+#### 1. Answerable Query (Q2 Kailasa Temple)
+```bash
+curl -X POST "http://127.0.0.1:8000/ask" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "question": "What is special about the Kailasa temple in Ellora cave 16?",
+       "top_k": 4
+     }'
+```
+**Response Preview:**
+```json
+{
+  "question": "What is special about the Kailasa temple in Ellora cave 16?",
+  "answer": "Ellora Cave 16 houses the world-famous Kailasa Temple, celebrated as the world's largest monolithic rock-cut monument. Carved top-down from a single basalt cliff under 8th-century Rashtrakuta patronage (King Krishna I), over 200,000 tonnes of rock were excavated. Highlights include colossal elephants, Ramayana/Mahabharata narrative friezes, and Ravana shaking Mount Kailasa.",
+  "citations": [
+    {
+      "chunk_id": "ellora-cave-16-0",
+      "title": "Ellora Cave 16 - Hindu (Rashtrakuta, ~8th century CE)",
+      "source": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
+      "page": 16,
+      "cave_no": "16",
+      "site": "Ellora",
+      "source_date": "2026-11",
+      "score": 0.8921
+    }
+  ],
+  "confidence": "high",
+  "abstained": false,
+  "config": {
+    "chunk_size": 400,
+    "top_k": 4
+  }
+}
+```
+
+#### 2. Unanswerable Guardrail Query (Q6 Diwali Tourist Footfall)
+```bash
+curl -X POST "http://127.0.0.1:8000/ask" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "question": "How many tourists visited Ajanta caves last Diwali?"
+     }'
+```
+**Response Preview:**
+```json
+{
+  "question": "How many tourists visited Ajanta caves last Diwali?",
+  "answer": "I don't know based on the official ASI records provided. LeniGuide only covers verified cave architecture, visiting timings, entry fees, and school tour planning for Ajanta and Ellora caves from asi.nic.in, and does not have access to live or seasonal tourist footfall statistics, room tariffs, or travel bookings.",
+  "citations": [],
+  "confidence": "low",
+  "abstained": true
+}
+```
+
+---
+
 ## Git Commands
 
-### Day 6 Commit
+### Day 8 Commit
 ```powershell
-# Verify .env is NOT tracked
-git status
-
-# Stage Day 6 files
-git add .env.example .gitignore prompts/ app/llm.py app/main.py eval/prompt_compare.md requirements.txt README.md
+# Stage all Day 8 files
+git add app/rag.py app/main.py app/smart_search.py eval/eval_set.json eval/run_eval.py eval/eval_results.md README.md
 
 # Commit with required prefix
-git commit -m "day-06: Add LLM provider wrapper, prompt engineering templates, POST /chat endpoint, and prompt evaluation report"
+git commit -m "day-08: Implement grounded RAG pipeline with citations, out-of-scope guardrail, POST /ask endpoint, 15-row eval benchmark, and tuning winner table"
 
 # Push to GitHub
 git push origin main
 ```
 
+---
+
 ## Testing Checklist
 
 - [x] 20 cave records created (8 Ajanta + 12 Ellora)
-- [x] All 6 required fields present in each record
-- [x] Official ASI timings and fees included
-- [x] `load_records()` function works
-- [x] `search()` function works
-- [x] `count_by()` function works (site, religion, religion_period)
-- [x] `get_by_id()` function works (3 call patterns)
-- [x] CLI menu runs successfully
-- [x] `.gitignore` includes `.venv/` and `.env`
-- [x] `requirements.txt` has all dependencies
+- [x] Official ASI timings and fees included (Ajanta closed Mon, Ellora closed Tue; Rs 40/35, under-15 free)
+- [x] Document chunking preserving `source`, `page`, and `title` metadata (`app/chunking.py`)
+- [x] Semantic search with dense embeddings and ASI priority boost (`app/embed.py`)
+- [x] Persistent ChromaDB vector store collection `leniguide_caves` (`app/vectorstore.py`)
+- [x] Grounded RAG pipeline with source citations (`app/rag.py`)
+- [x] Strict `"I don't know"` abstention for Q6 and Q15 out-of-scope guardrail
+- [x] FastAPI REST API with `GET /search/semantic` and `POST /ask` (`app/main.py`)
+- [x] Exactly 15 evaluation rows in `eval/eval_set.json`
+- [x] Quantitative evaluation comparing Config A vs Config B (`eval/run_eval.py` -> `eval/eval_results.md`)
+- [x] Config B declared Winner with comprehensive justification in `README.md`
 
 ## License
 
@@ -367,4 +468,4 @@ Educational project for Sanjivani AI Training Program.
 ---
 
 **Developed for:** Sanjivani College of Engineering, Kopargaon  
-**Training Program:** 15-Day AI Course (Day 2 - S1 & S2)
+**Training Program:** 15-Day AI Course (Day 8 - S1 & S2)

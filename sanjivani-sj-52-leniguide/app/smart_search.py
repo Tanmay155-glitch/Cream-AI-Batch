@@ -16,13 +16,15 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 # Try importing scikit-learn, fallback to pure Python implementation
-try:
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.metrics.pairwise import cosine_similarity
-    SKLEARN_AVAILABLE = True
-except ImportError:
-    SKLEARN_AVAILABLE = False
-    print("⚠ scikit-learn not available, using pure Python TF-IDF implementation")
+import os
+SKLEARN_AVAILABLE = False
+if os.getenv("USE_SKLEARN", "0") == "1":
+    try:
+        from sklearn.feature_extraction.text import TfidfVectorizer
+        from sklearn.metrics.pairwise import cosine_similarity
+        SKLEARN_AVAILABLE = True
+    except Exception:
+        SKLEARN_AVAILABLE = False
 
 
 # ============================================================================
