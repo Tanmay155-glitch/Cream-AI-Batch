@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 580" font-family="Segoe UI, Arial, sans-serif">
+  <!-- Background -->
+  <rect width="960" height="580" rx="12" fill="#0e1117"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="960" height="44" rx="12" fill="#1a1a2e"/>
+  <text x="20" y="29" fill="#e94560" font-size="16" font-weight="700">🏛️ LeniGuide — Ajanta &amp; Ellora Study Tour Planner</text>
+  <text x="700" y="29" fill="#888" font-size="11">Student: Tanmay S. Gawali (SJ-52)</text>
+
+  <!-- Sidebar -->
+  <rect x="0" y="44" width="220" height="536" fill="#16213e"/>
+  <text x="16" y="72" fill="#e94560" font-size="13" font-weight="700">🤖 Assistant Mode</text>
+  <rect x="12" y="80" width="196" height="24" rx="6" fill="#0f3460"/>
+  <text x="20" y="97" fill="#4fc3f7" font-size="10">● Agent Mode (/agent)</text>
+  <rect x="12" y="110" width="196" height="24" rx="6" fill="#1a1a2e"/>
+  <text x="20" y="127" fill="#aaa" font-size="10">○ RAG Mode (/ask)</text>
+
+  <text x="16" y="158" fill="#ccc" font-size="11" font-weight="600">📝 Quick Test Questions</text>
+  <rect x="12" y="166" width="196" height="20" rx="4" fill="#0f3460"/>
+  <text x="18" y="180" fill="#aaa" font-size="9">Q1: Weekly closures</text>
+  <rect x="12" y="190" width="196" height="20" rx="4" fill="#0f3460"/>
+  <text x="18" y="204" fill="#aaa" font-size="9">Q2: Kailasa temple</text>
+  <rect x="12" y="214" width="196" height="20" rx="4" fill="#0f3460"/>
+  <text x="18" y="228" fill="#aaa" font-size="9">Q4: 14-15 Dec trip plan</text>
+  <rect x="12" y="238" width="196" height="20" rx="4" fill="#e94560" opacity="0.3"/>
+  <text x="18" y="252" fill="#ff6b6b" font-size="9">Q6: Guardrail test ⚠️</text>
+
+  <text x="16" y="285" fill="#ccc" font-size="11" font-weight="600">🧮 Group Trip Calculator</text>
+  <rect x="12" y="293" width="196" height="18" rx="4" fill="#0f3460"/>
+  <text x="18" y="306" fill="#aaa" font-size="9">Start: 14 Dec 2026 · 2 days</text>
+  <rect x="12" y="315" width="196" height="18" rx="4" fill="#0f3460"/>
+  <text x="18" y="328" fill="#aaa" font-size="9">4 Adults · 40 Students &lt;15</text>
+  <rect x="12" y="340" width="196" height="24" rx="6" fill="#e94560"/>
+  <text x="55" y="357" fill="#fff" font-size="10" font-weight="600">🗓️ Plan This Trip</text>
+
+  <text x="16" y="390" fill="#ccc" font-size="11" font-weight="600">📊 Feedback Stats</text>
+  <rect x="12" y="398" width="94" height="36" rx="6" fill="#0f3460"/>
+  <text x="22" y="413" fill="#4CAF50" font-size="10">👍 Helpful</text>
+  <text x="55" y="428" fill="#fff" font-size="14" font-weight="700">12</text>
+  <rect x="114" y="398" width="94" height="36" rx="6" fill="#0f3460"/>
+  <text x="124" y="413" fill="#FF9800" font-size="10">👎 Improve</text>
+  <text x="157" y="428" fill="#fff" font-size="14" font-weight="700">2</text>
+
+  <!-- Main area: Route Strip -->
+  <text x="240" y="72" fill="#e94560" font-size="14" font-weight="700">🗺️ Ajanta Caves Walking Route</text>
+  <text x="750" y="72" fill="#aaa" font-size="10" font-weight="600">⏱️ 180 min (3.0 hrs) · 8 caves</text>
+
+  <!-- Route cards row 1 -->
+  <rect x="240" y="82" width="110" height="80" rx="6" fill="#0f3460" stroke="#FF9800" stroke-width="2"/>
+  <text x="250" y="99" fill="#e94560" font-size="11" font-weight="700">Cave 1</text>
+  <rect x="296" y="88" width="48" height="14" rx="4" fill="gold"/>
+  <text x="300" y="99" fill="#333" font-size="8" font-weight="700">⭐ Top 5</text>
+  <text x="250" y="114" fill="#FF9800" font-size="8">Buddhist · Mahayana</text>
+  <text x="250" y="128" fill="#ccc" font-size="7.5">Padmapani murals</text>
+  <text x="250" y="152" fill="#aaa" font-size="8">⏱️ 25 min · Σ 25</text>
+
+  <text x="355" y="125" fill="#666" font-size="16">→</text>
+
+  <rect x="370" y="82" width="110" height="80" rx="6" fill="#0f3460" stroke="#FF9800" stroke-width="2"/>
+  <text x="380" y="99" fill="#e94560" font-size="11" font-weight="700">Cave 2</text>
+  <rect x="426" y="88" width="48" height="14" rx="4" fill="gold"/>
+  <text x="430" y="99" fill="#333" font-size="8" font-weight="700">⭐ Top 5</text>
+  <text x="380" y="114" fill="#FF9800" font-size="8">Buddhist · Mahayana</text>
+  <text x="380" y="128" fill="#ccc" font-size="7.5">Ceiling mandalas</text>
+  <text x="380" y="152" fill="#aaa" font-size="8">⏱️ 20 min · Σ 45</text>
+
+  <text x="485" y="125" fill="#666" font-size="16">→</text>
+
+  <rect x="500" y="82" width="110" height="80" rx="6" fill="#0f3460"/>
+  <text x="510" y="99" fill="#e94560" font-size="11" font-weight="700">Cave 9</text>
+  <text x="510" y="114" fill="#FF9800" font-size="8">Buddhist · Hinayana</text>
+  <text x="510" y="128" fill="#ccc" font-size="7.5">Chaitya prayer hall</text>
+  <text x="510" y="152" fill="#aaa" font-size="8">⏱️ 15 min · Σ 60</text>
+
+  <text x="615" y="125" fill="#666" font-size="16">→</text>
+
+  <rect x="630" y="82" width="110" height="80" rx="6" fill="#0f3460" stroke="#FF9800" stroke-width="2"/>
+  <text x="640" y="99" fill="#e94560" font-size="11" font-weight="700">Cave 16</text>
+  <rect x="700" y="88" width="35" height="14" rx="4" fill="gold"/>
+  <text x="703" y="99" fill="#333" font-size="8" font-weight="700">⭐</text>
+  <text x="640" y="114" fill="#FF9800" font-size="8">Buddhist · Vakataka</text>
+  <text x="640" y="128" fill="#ccc" font-size="7.5">Dying Princess mural</text>
+  <text x="640" y="152" fill="#aaa" font-size="8">⏱️ 25 min · Σ 100</text>
+
+  <text x="745" y="125" fill="#666" font-size="16">→</text>
+
+  <rect x="760" y="82" width="110" height="80" rx="6" fill="#0f3460" stroke="#FF9800" stroke-width="2"/>
+  <text x="770" y="99" fill="#e94560" font-size="11" font-weight="700">Cave 17</text>
+  <rect x="830" y="88" width="35" height="14" rx="4" fill="gold"/>
+  <text x="833" y="99" fill="#333" font-size="8" font-weight="700">⭐</text>
+  <text x="770" y="114" fill="#FF9800" font-size="8">Buddhist · Vakataka</text>
+  <text x="770" y="128" fill="#ccc" font-size="7.5">Best Jataka murals</text>
+  <text x="770" y="152" fill="#aaa" font-size="8">⏱️ 30 min · Σ 130</text>
+
+  <!-- Info banner -->
+  <rect x="240" y="170" width="690" height="22" rx="4" fill="#1e3a5f"/>
+  <text x="250" y="185" fill="#4fc3f7" font-size="9">📏 Full Route: 8 caves · 180 min (3.0 hrs) | Top-5 Express: 5 caves · 125 min (2.1 hrs) | 🕐 Open 9 AM – 5 PM · Closed Mondays</text>
+
+  <!-- Chat area -->
+  <text x="240" y="215" fill="#ccc" font-size="13" font-weight="700">💬 Ask LeniGuide</text>
+
+  <!-- User message -->
+  <rect x="500" y="224" width="430" height="40" rx="8" fill="#1a1a2e"/>
+  <text x="510" y="248" fill="#fff" font-size="10">We are 4 teachers and 40 students under 15 coming on 14-15</text>
+  <text x="510" y="260" fill="#fff" font-size="10">December. Which site on which day, and total ticket cost?</text>
+
+  <!-- Assistant response -->
+  <rect x="240" y="272" width="690" height="130" rx="8" fill="#16213e"/>
+  <text x="258" y="292" fill="#e94560" font-size="11" font-weight="700">[CONFIRMED] LeniGuide 2-Day Study Tour Plan</text>
+  <text x="258" y="310" fill="#ccc" font-size="9">Day 1 (Mon, 2026-12-14): Visit Ellora Caves — Ajanta is CLOSED on Mondays</text>
+  <text x="258" y="326" fill="#ccc" font-size="9">Day 2 (Tue, 2026-12-15): Visit Ajanta Caves — Ellora is CLOSED on Tuesdays</text>
+  <text x="258" y="346" fill="#4CAF50" font-size="9" font-weight="600">💰 Cash Total: Rs 320 | 💳 Online Total: Rs 280 | 🎒 Students: Rs 0 FREE</text>
+
+  <!-- Citations expander -->
+  <rect x="258" y="360" width="300" height="18" rx="4" fill="#0f3460"/>
+  <text x="268" y="373" fill="#aaa" font-size="9">📚 Official ASI Citations &amp; Sources (2) ▸</text>
+
+  <!-- Tool output expander -->
+  <rect x="568" y="360" width="200" height="18" rx="4" fill="#0f3460"/>
+  <text x="578" y="373" fill="#aaa" font-size="9">🗓️ Trip Planner Output ▸</text>
+
+  <!-- Thumbs -->
+  <rect x="258" y="386" width="80" height="20" rx="4" fill="#0f3460"/>
+  <text x="268" y="400" fill="#4CAF50" font-size="10">👍 Helpful</text>
+  <rect x="345" y="386" width="80" height="20" rx="4" fill="#0f3460"/>
+  <text x="355" y="400" fill="#FF9800" font-size="10">👎 Improve</text>
+
+  <!-- Chat input -->
+  <rect x="240" y="420" width="690" height="32" rx="8" fill="#1a1a2e" stroke="#333"/>
+  <text x="258" y="440" fill="#666" font-size="10">Ask about Ajanta &amp; Ellora caves, plan a study tour…</text>
+
+  <!-- Footer label -->
+  <rect x="240" y="466" width="690" height="100" rx="8" fill="#0e1117" stroke="#1a1a2e"/>
+  <text x="380" y="490" fill="#e94560" font-size="12" font-weight="700">🏛️ LeniGuide UI Preview</text>
+  <text x="340" y="508" fill="#aaa" font-size="9">Streamlit Chat + Must-See Route Strip + Citations + Thumbs Feedback</text>
+  <text x="370" y="524" fill="#888" font-size="8">Student: Tanmay Subhash Gawali · Reg: 2124UMLM2016 · SJ-52</text>
+  <text x="380" y="540" fill="#666" font-size="8">Day 10 — Checkpoint 2 · Official ASI Data · asi.nic.in</text>
+</svg>

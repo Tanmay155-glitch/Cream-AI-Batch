@@ -73,27 +73,45 @@ These questions represent actual queries from our target user (a history teacher
 
 ```
 sanjivani-sj-52-leniguide/
+├── ui/
+│   └── app.py                  # Day 10: Streamlit UI with Must-See Route Strip, citations & feedback
 ├── docs/
-│   └── how_llms_work.md        # Day 5: LLM explanation with diagrams
+│   ├── how_llms_work.md        # Day 5: LLM explanation with diagrams
+│   ├── leniguide_ui_preview.svg # Day 10: Streamlit UI visual mockup/preview
+│   └── checkpoint_2_demo.md    # Day 10: Checkpoint 2 live demo script
 ├── data/
 │   ├── raw/                    # Downloaded HTML files
 │   ├── sample_records.json     # Original 20 cave records
 │   ├── records.json            # Cleaned cave data
-│   └── questions.json          # 10 real user questions
+│   ├── questions.json          # 10 real user questions
+│   └── feedback.json           # Day 10: User thumbs up / thumbs down log
 ├── eval/
-│   └── questions.json          # Mirror of questions for testing
+│   ├── questions.json          # Mirror of questions for testing
+│   ├── eval_set.json           # Day 8: 15-question evaluation set
+│   ├── eval_results.md         # Day 8: Config A vs B benchmark
+│   └── run_eval.py             # Day 8: Evaluation runner
 ├── app/
 │   ├── __init__.py             # Package initialization
 │   ├── models.py               # Record dataclass
 │   ├── records.py              # Data operations
 │   ├── smart_search.py         # TF-IDF + cosine similarity
-│   ├── main.py                 # FastAPI REST API (6 endpoints)
+│   ├── main.py                 # FastAPI REST API (POST /ask, POST /agent)
+│   ├── tools.py                # Day 9: Agent tools (cave_trip_planner, rag_search_tool)
+│   ├── agent_loop.py           # Day 9: ReAct tool-calling agent loop
+│   ├── graph.py                # Day 9: LangGraph stateful agent with approval gate
+│   ├── rag.py                  # Day 8: RAG retrieval & generation pipeline
+│   ├── vectorstore.py          # Day 7: ChromaDB persistent vector store
+│   ├── chunking.py             # Day 7: Chunking with metadata preservation
+│   ├── embed.py                # Day 7: Dense embeddings & semantic search
+│   ├── llm.py                  # Day 6: Multi-provider LLM client
 │   ├── fetch.py                # Web data fetcher
 │   ├── ingest.py               # Data cleaning pipeline
 │   └── cli.py                  # Command-line interface
+├── tests/
+│   └── test_day09_agent.py     # Day 9: Agent test suite (11/11 passed)
 ├── analysis/
 │   └── explore.py              # Pandas data analysis
-├── requirements.txt            # Python dependencies
+├── requirements.txt            # Python dependencies (includes streamlit, langgraph)
 ├── .gitignore                  # Git ignore rules
 └── README.md                   # This file
 ```
@@ -431,18 +449,99 @@ curl -X POST "http://127.0.0.1:8000/ask" \
 
 ---
 
+## Day 9: Multi-Agent Systems & LangGraph (`POST /agent`)
+
+LeniGuide implements a multi-agent system powered by **LangGraph** (`app/graph.py`) alongside a hand-written ReAct loop (`app/agent_loop.py`) and dedicated agent tools (`app/tools.py`).
+
+### Agent Architecture
+- **`cave_trip_planner` Tool:** Uses pure Python `datetime` and arithmetic to evaluate weekly site closures (Ajanta closed Monday, Ellora closed Tuesday) and compute exact ASI entry fees (Adults: ₹40 cash / ₹35 online; Children under 15: FREE).
+- **`rag_search_tool` Tool:** Direct interface into the grounded RAG vector store for historical and architectural queries.
+- **Stateful Memory:** Powered by LangGraph's `MemorySaver` checkpointer with thread-based session tracking.
+- **Human-in-the-Loop Approval Gate:** LangGraph pauses for explicit human confirmation before finalizing commercial tour bookings or submitting payment requests.
+- **Automated Tests:** 11/11 tests passing in `tests/test_day09_agent.py`.
+
+---
+
+## Day 10: Streamlit UI & Checkpoint 2 Review
+
+LeniGuide includes a production-ready, interactive **Streamlit User Interface** (`ui/app.py`) designed specifically for our target user: a history teacher from Kopargaon planning an educational tour for 40 students.
+
+### UI Preview
+
+![LeniGuide Streamlit UI](docs/leniguide_ui_preview.svg)
+
+*(A live browser capture can also be saved to `docs/screenshot.png`)*
+
+### Signature Feature: The "Must-See Route" Strip
+
+At the top of the interface, the **"Must-See Route" strip** organizes caves in strict geographic walking order, with estimated visit minutes and star badges (★) on the top 5 highlights so school groups comfortably fit their tour into **3 to 4 hours (180–240 minutes)**:
+
+1. **Ajanta Caves Walking Route (8 Caves = Exactly 180 mins / 3 hours 0 mins):**
+   - **Cave 1 (★ 25 mins):** Padmapani & Vajrapani masterpieces
+   - **Cave 2 (★ 20 mins):** Intricate painted ceilings & Thousand Buddhas
+   - **Cave 9 (15 mins):** Ancient Hinayana Chaitya hall with stupa
+   - **Cave 10 (20 mins):** Oldest Chaitya discovered by John Smith (1819)
+   - **Cave 16 (★ 25 mins):** Dying Princess mural & Elephant Gate
+   - **Cave 17 (★ 25 mins):** Best preserved Jataka paintings (Vessantara)
+   - **Cave 19 (20 mins):** Gandhara-influenced Chaitya facade
+   - **Cave 26 (★ 30 mins):** 24-foot colossal Reclining Buddha (Mahaparinirvana)
+   *Express Top-5 Starred Route (★ Only): 125 mins (~2.1 hours)*
+
+2. **Ellora Caves Walking Route (12 Caves = Exactly 230 mins / 3 hours 50 mins):**
+   - Covers Buddhist (Caves 1–12), Hindu (Caves 14–29), and Jain (Caves 30–34) monuments.
+   - **Top 5 Starred Highlights:**
+     - **Cave 10 (★ 25 mins):** Viswakarma Carpenter's Cave (Chaitya)
+     - **Cave 12 (★ 25 mins):** Teen Thal 3-storeyed monastery
+     - **Cave 15 (★ 20 mins):** Dasavatara cave & Nataraja relief
+     - **Cave 16 (★ 35 mins):** Kailasha Monolithic Temple
+     - **Cave 32 (★ 20 mins):** Indra Sabha & Ambika Yakshi
+   *Express Top-5 Starred Route (★ Only): 125 mins (~2.1 hours)*
+
+### Key UI Capabilities
+- **Dual Mode Chat:** Switch between `Agent Mode (/agent)` with LangGraph reasoning and `RAG Mode (/ask)` with pure grounded retrieval.
+- **Citations & Agent Trace Expander:** Clickable badges show source chunks, cave numbers, similarity scores, and execution tool JSON.
+- **Live User Feedback Loop:** Thumbs Up / Down buttons persist evaluations to `data/feedback.json`.
+- **Quick-Access Question Chips:** Test Q1–Q6 with a single click.
+- **Interactive Tour Cost Calculator:** Real-time fee estimator in the sidebar.
+
+### How to Run the Application
+
+#### 1. Start the FastAPI Backend
+```bash
+cd sanjivani-sj-52-leniguide
+# Activate environment and launch API
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### 2. Start the Streamlit Web Application
+```bash
+cd sanjivani-sj-52-leniguide
+# Launch Streamlit app
+streamlit run ui/app.py
+```
+Open your browser at `http://localhost:8501`.
+
+### Checkpoint 2 Review Demo
+For the full step-by-step evaluator walkthrough (Q2 Kailasha architecture, Q4 4-teacher/40-student December 14-15 schedule math, Q6 out-of-scope guardrail, and feedback logging), see [`docs/checkpoint_2_demo.md`](docs/checkpoint_2_demo.md).
+
+---
+
 ## Git Commands
 
-### Day 8 Commit
+### Day 10 Commit
 ```powershell
-# Stage all Day 8 files
-git add app/rag.py app/main.py app/smart_search.py eval/eval_set.json eval/run_eval.py eval/eval_results.md README.md
+# Stage all Day 10 files
+git add ui/app.py docs/leniguide_ui_preview.svg docs/checkpoint_2_demo.md data/feedback.json README.md requirements.txt
 
 # Commit with required prefix
-git commit -m "day-08: Implement grounded RAG pipeline with citations, out-of-scope guardrail, POST /ask endpoint, 15-row eval benchmark, and tuning winner table"
+git commit -m "day-10: Streamlit UI with Must-See Route Strip, citations, thumbs feedback, and Checkpoint 2 demo guide"
+
+# Tag Checkpoint 2
+git tag checkpoint-2
 
 # Push to GitHub
 git push origin main
+git push origin checkpoint-2
 ```
 
 ---
@@ -460,6 +559,14 @@ git push origin main
 - [x] Exactly 15 evaluation rows in `eval/eval_set.json`
 - [x] Quantitative evaluation comparing Config A vs Config B (`eval/run_eval.py` -> `eval/eval_results.md`)
 - [x] Config B declared Winner with comprehensive justification in `README.md`
+- [x] Pure Python `cave_trip_planner` tool with closure and fee logic (`app/tools.py`)
+- [x] Hand-written ReAct loop and LangGraph agent workflow (`app/agent_loop.py`, `app/graph.py`)
+- [x] FastAPI `POST /agent` endpoint with human-in-the-loop approval gate (`app/main.py`)
+- [x] 11/11 Day 9 agent unit and integration tests passing (`tests/test_day09_agent.py`)
+- [x] Interactive Streamlit application (`ui/app.py`) with "Must-See Route" Strip signature feature
+- [x] Checkpoint 2 live demo script created (`docs/checkpoint_2_demo.md`)
+- [x] UI SVG visual preview generated (`docs/leniguide_ui_preview.svg`)
+- [x] User feedback persistence loop (`data/feedback.json`)
 
 ## License
 
@@ -468,4 +575,4 @@ Educational project for Sanjivani AI Training Program.
 ---
 
 **Developed for:** Sanjivani College of Engineering, Kopargaon  
-**Training Program:** 15-Day AI Course (Day 8 - S1 & S2)
+**Training Program:** 15-Day AI Course (Day 10 - S1 & S2: Streamlit UI / Checkpoint 2)
