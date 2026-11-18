@@ -29,6 +29,7 @@ from app.records import load_records, get_by_id
 from app.smart_search import SmartSearch
 from app.llm import generate_chat_response, LLMClient
 from app.rag import answer_question
+from app.graph import run_graph_agent
 
 
 # ============================================================================
@@ -146,14 +147,62 @@ class AskResponse(BaseModel):
     config: Optional[Dict[str, Any]] = None
 
 
+# Day 9 LangGraph Agent Models
+class AgentRequest(BaseModel):
+    """
+    Request model for the Day 9 LangGraph Agent endpoint (POST /agent).
+    Accepts question, query, or message to support all testing harnesses.
+    """
+    question: Optional[str] = Field(default=None, description="Natural language question or tour planning prompt")
+    query: Optional[str] = Field(default=None, description="Alternative field for question")
+    message: Optional[str] = Field(default=None, description="Alternative field for question")
+    thread_id: Optional[str] = Field(default="default-session", description="Conversation thread identifier for multi-turn state")
+    approved: Optional[bool] = Field(default=None, description="Human approval flag (True/False/None)")
+    require_approval: Optional[bool] = Field(default=False, description="Whether to require manual human approval for itineraries")
+
+    def get_query_text(self) -> str:
+        text = self.question or self.query or self.message or ""
+        return text.strip()
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "question": "We are 4 teachers and 40 students under 15 coming on 14-15 December. Which site on which day, and total ticket cost?",
+                "thread_id": "school-tour-42",
+                "approved": None,
+                "require_approval": False
+            }
+        }
+
+
+class AgentResponse(BaseModel):
+    """
+    Structured response model for Day 9 LangGraph Agent.
+    """
+    question: str
+    answer: str
+    thread_id: str
+    tools_used: List[str]
+    approval_status: str
+    approved: Optional[bool] = None
+    requires_approval: bool = False
+    tool_output: Optional[Dict[str, Any]] = None
+    citations: List[Dict[str, Any]] = []
+    sources: Optional[List[Dict[str, Any]]] = None
+    steps: List[Dict[str, Any]] = []
+    abstained: bool = False
+    history_length: int = 0
+    latency_ms: Optional[float] = None
+
+
 # ============================================================================
 # FastAPI Application
 # ============================================================================
 
 app = FastAPI(
     title="LeniGuide API",
-    description="Cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites with GenAI Chat, Semantic Search & Grounded RAG",
-    version="1.3.0",
+    description="Cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites with GenAI Chat, Semantic Search, Grounded RAG & Autonomous LangGraph Agents",
+    version="1.4.0",
     contact={
         "name": "Tanmay Subhash Gawali",
         "email": "tanmay.gawali@sanjivani.org.in"
@@ -399,6 +448,53 @@ def ask_endpoint(request: AskRequest):
         abstained=response_dict.get("abstained", False),
         latency_ms=response_dict.get("latency_ms"),
         config=response_dict.get("config")
+    )
+
+
+# ============================================================================
+# Day 9: Autonomous LangGraph Agent Endpoint (POST /agent)
+# ============================================================================
+
+@app.post("/agent", response_model=AgentResponse)
+def agent_endpoint(request: AgentRequest):
+    """
+    Day 9 Autonomous Agent Endpoint for LeniGuide powered by LangGraph.
+    
+    Features:
+    - ReAct & Tool Execution: Dynamically routes between cave_trip_planner (date math,
+      weekly closing rules, and ticket arithmetic) and rag_search (official heritage records).
+    - Human-in-the-Loop Approval Step: Supports pending_approval preview and teacher confirmation.
+    - Multi-Turn Conversation Memory: Persists messages and intermediate state by thread_id.
+    """
+    user_query = request.get_query_text()
+    if not user_query and request.approved is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Field 'question', 'query', or 'message' must be provided and non-empty."
+        )
+
+    res = run_graph_agent(
+        question=user_query,
+        thread_id=request.thread_id or "default-session",
+        approved=request.approved,
+        require_approval=request.require_approval or False
+    )
+
+    return AgentResponse(
+        question=res.get("question", user_query),
+        answer=res.get("answer", ""),
+        thread_id=res.get("thread_id", request.thread_id or "default-session"),
+        tools_used=res.get("tools_used", []),
+        approval_status=res.get("approval_status", "not_required"),
+        approved=res.get("approved"),
+        requires_approval=res.get("requires_approval", False),
+        tool_output=res.get("tool_output"),
+        citations=res.get("citations", []),
+        sources=res.get("sources", res.get("citations", [])),
+        steps=res.get("steps", []),
+        abstained=res.get("abstained", False),
+        history_length=res.get("history_length", 0),
+        latency_ms=res.get("latency_ms")
     )
 
 
@@ -703,12 +799,13 @@ async def internal_error_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     print("=" * 80)
-    print("LENIGUIDE FASTAPI SERVER (DAY 8)")
+    print("LENIGUIDE FASTAPI SERVER (DAY 9)")
     print("Student: Tanmay Subhash Gawali (SJ-52)")
     print("=" * 80)
     print("\nStarting server at http://127.0.0.1:8000")
     print("API Documentation: http://127.0.0.1:8000/docs")
     print("RAG Endpoint: POST http://127.0.0.1:8000/ask")
+    print("Agent Endpoint: POST http://127.0.0.1:8000/agent")
     print("=" * 80)
     
     uvicorn.run(
