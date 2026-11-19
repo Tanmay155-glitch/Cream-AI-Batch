@@ -10,12 +10,12 @@ Provides:
 - Grounded answer generation with structured citations and deterministic offline fallback.
 """
 
-import sys
-import re
 import json
+import re
+import sys
 import time
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -24,7 +24,6 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.chunking import build_leniguide_chunks
 from app.embed import semantic_search
 from app.llm import generate_chat_response
-
 
 # Cache for chunk collections keyed by (chunk_size, chunk_overlap)
 _CHUNK_CACHE: Dict[tuple, List[Dict[str, Any]]] = {}

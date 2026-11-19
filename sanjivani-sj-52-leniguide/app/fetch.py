@@ -4,10 +4,11 @@ Downloads official ASI pages and reference documents with fallback for network f
 """
 
 import sys
+from datetime import datetime
 from pathlib import Path
 from typing import List, Tuple
+
 import requests
-from datetime import datetime
 
 # Ensure app module can be imported
 current_dir = Path(__file__).parent
@@ -256,7 +257,7 @@ def fetch_one(url: str, dest_path: Path, timeout: int = 10) -> bool:
 </body>
 </html>"""
         dest_path.write_text(generic_fallback, encoding='utf-8')
-        print(f"  ✓ Fallback: Written generic placeholder")
+        print("  ✓ Fallback: Written generic placeholder")
     
     return False
 
@@ -316,7 +317,7 @@ def fetch_all() -> Tuple[int, int]:
     print("\n" + "=" * 80)
     print("FETCH COMPLETE")
     print("=" * 80)
-    print(f"\nNext step: Run 'python -m app.ingest' to process raw data")
+    print("\nNext step: Run 'python -m app.ingest' to process raw data")
     
     return successful, fallback
 

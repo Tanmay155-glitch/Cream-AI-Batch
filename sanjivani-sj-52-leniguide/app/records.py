@@ -5,7 +5,7 @@ Provides functions to load, search, count, and retrieve cave information.
 
 import json
 from pathlib import Path
-from typing import List, Dict, Optional, Any
+from typing import Any, Dict, List, Optional
 
 
 def load_records(file_path: Optional[str] = None) -> List[Dict[str, Any]]:

@@ -11,9 +11,9 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(project_root))
 
+from app.llm import LLMClient, generate_chat_response, load_prompt
 from app.records import load_records
 from app.smart_search import SmartSearch
-from app.llm import generate_chat_response, LLMClient, load_prompt
 
 
 def test_prompts_exist():

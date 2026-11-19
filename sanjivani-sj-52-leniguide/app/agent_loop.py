@@ -12,23 +12,18 @@ Implements:
 - Deterministic routing fallback that guarantees 100% reliable execution offline or with LLM API keys.
 """
 
-import sys
 import re
+import sys
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.tools import (
-    cave_trip_planner,
-    rag_search_tool,
-    extract_trip_params,
-    TOOLS
-)
 from app.rag import is_unanswerable_query
+from app.tools import TOOLS, cave_trip_planner, extract_trip_params, rag_search_tool
 
 
 class LeniGuideAgent:
@@ -142,14 +137,14 @@ class LeniGuideAgent:
             day2 = schedule[1] if len(schedule) > 1 else None
 
             answer_parts = [
-                f"### LeniGuide 2-Day Study Tour Plan & Ticket Cost Estimate\n",
+                "### LeniGuide 2-Day Study Tour Plan & Ticket Cost Estimate\n",
                 f"**Target Group:** {planner_result['adults']} Teachers (Adults) & {planner_result['children_under_15']} Students (<15 Years)",
                 f"**Dates:** {day1['weekday']}, {day1['date']}" + (f" and {day2['weekday']}, {day2['date']}" if day2 else ""),
-                f"\n#### 1. Daily Site Assignment (Official ASI Closing Rules)",
+                "\n#### 1. Daily Site Assignment (Official ASI Closing Rules)",
                 f"- **Day 1 ({day1['weekday']}, {day1['date']}): Visit {day1['assigned_site']} Caves**",
                 f"  * *Reason:* {day1['closing_rule']}",
                 f"  * *Timings:* {day1['site_status']}",
-                f"  * *Must-See Highlights:*",
+                "  * *Must-See Highlights:*",
             ]
             for h in day1["must_see_highlights"]:
                 answer_parts.append(f"    - {h}")
@@ -159,20 +154,20 @@ class LeniGuideAgent:
                     f"\n- **Day 2 ({day2['weekday']}, {day2['date']}): Visit {day2['assigned_site']} Caves**",
                     f"  * *Reason:* {day2['closing_rule']}",
                     f"  * *Timings:* {day2['site_status']}",
-                    f"  * *Must-See Highlights:*",
+                    "  * *Must-See Highlights:*",
                 ])
                 for h in day2["must_see_highlights"]:
                     answer_parts.append(f"    - {h}")
 
             answer_parts.extend([
-                f"\n#### 2. Official ASI Entry Fee Calculation",
+                "\n#### 2. Official ASI Entry Fee Calculation",
                 f"- **Teachers / Adults ({planner_result['adults']} persons):**",
                 f"  * Per site: Rs {fees['online_per_site_inr']} (Online @ Rs 35/adult) vs Rs {fees['cash_per_site_inr']} (Cash @ Rs 40/adult)",
                 f"  * **Total for 2-day tour ({planner_result['unique_sites_count']} sites): Rs {fees['online_total_inr']} (Online)** OR **Rs {fees['cash_total_inr']} (Cash)**",
                 f"- **Students under 15 ({planner_result['children_under_15']} students):**",
-                f"  * **Rs 0 (100% FREE entry)** under official ASI policy (carry valid school ID cards)",
+                "  * **Rs 0 (100% FREE entry)** under official ASI policy (carry valid school ID cards)",
                 f"- **Recommended Mode:** Book online via the official ASI portal to save **Rs {fees['savings_online_inr']}** and bypass ticket queues.",
-                f"\n*Sources: Official Archaeological Survey of India (ASI) regulations (asi.nic.in)*"
+                "\n*Sources: Official Archaeological Survey of India (ASI) regulations (asi.nic.in)*"
             ])
 
             final_answer = "\n".join(answer_parts)
@@ -199,7 +194,7 @@ class LeniGuideAgent:
             # RAG Search routing
             steps.append({
                 "step": 1,
-                "thought": f"Query requires heritage knowledge or out-of-scope check. Invoking rag_search.",
+                "thought": "Query requires heritage knowledge or out-of-scope check. Invoking rag_search.",
                 "action": "rag_search",
                 "action_input": {"query": q_clean, "top_k": 4}
             })

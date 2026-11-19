@@ -9,12 +9,13 @@ order, starred Top-5, estimated minutes per cave so a group fits the visit
 into 3-4 hours.
 """
 
-import sys
 import json
+import os
+import sys
 import time
-from pathlib import Path
 from datetime import datetime
-from typing import Dict, Any, List, Optional
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
@@ -183,13 +184,13 @@ def render_route_strip(route: List[Dict], site_name: str, show_all: bool):
         col = cols[i % len(cols)]
         color = RELIGION_COLORS.get(cave["religion"], "#999")
         star_badge = "⭐ Top 5" if cave["star"] else ""
+        badge_html = f"  <span style='background:gold;color:#333;padding:1px 6px;border-radius:8px;font-size:0.7em;'>{star_badge}</span>" if star_badge else ""
         with col:
             st.markdown(
                 f"<div style='background:#0f3460;border-left:4px solid {color};"
                 f"border-radius:8px;padding:10px;margin:4px 0;min-height:155px;'>"
                 f"<div style='font-size:1.05em;font-weight:700;color:#e94560;'>"
-                f"{cave['cave']}"
-                f"{'  <span style=\"background:gold;color:#333;padding:1px 6px;border-radius:8px;font-size:0.7em;\">' + star_badge + '</span>' if star_badge else ''}"
+                f"{cave['cave']}{badge_html}"
                 f"</div>"
                 f"<div style='color:{color};font-size:0.78em;margin:3px 0;'>"
                 f"{cave['religion']}{(' · ' + cave['period']) if cave['period'] else ''}</div>"
@@ -208,14 +209,14 @@ def render_route_strip(route: List[Dict], site_name: str, show_all: bool):
             col = cols2[i % len(cols2)]
             color = RELIGION_COLORS.get(cave["religion"], "#999")
             star_badge = "⭐ Top 5" if cave["star"] else ""
+            badge_html2 = f"  <span style='background:gold;color:#333;padding:1px 6px;border-radius:8px;font-size:0.7em;'>{star_badge}</span>" if star_badge else ""
             # cumulative continues
             with col:
                 st.markdown(
                     f"<div style='background:#0f3460;border-left:4px solid {color};"
                     f"border-radius:8px;padding:10px;margin:4px 0;min-height:155px;'>"
                     f"<div style='font-size:1.05em;font-weight:700;color:#e94560;'>"
-                    f"{cave['cave']}"
-                    f"{'  <span style=\"background:gold;color:#333;padding:1px 6px;border-radius:8px;font-size:0.7em;\">' + star_badge + '</span>' if star_badge else ''}"
+                    f"{cave['cave']}{badge_html2}"
                     f"</div>"
                     f"<div style='color:{color};font-size:0.78em;margin:3px 0;'>"
                     f"{cave['religion']}{(' · ' + cave['period']) if cave['period'] else ''}</div>"
@@ -263,7 +264,7 @@ def main():
         # Backend URL
         backend_url = st.text_input(
             "🔗 Backend URL",
-            value="http://127.0.0.1:8000",
+            value=os.getenv("BACKEND_URL", "http://127.0.0.1:8000"),
             help="FastAPI server URL. Falls back to direct import if server is not running."
         )
 

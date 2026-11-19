@@ -526,22 +526,90 @@ For the full step-by-step evaluator walkthrough (Q2 Kailasha architecture, Q4 4-
 
 ---
 
+## Run with Docker
+
+LeniGuide is fully containerized using Docker and Docker Compose. A production-ready `Dockerfile` (Python 3.11-slim) and `docker-compose.yml` orchestrate both the **FastAPI backend** (`api`) and the **Streamlit web interface** (`ui`) over an isolated bridge network with automated health checks.
+
+### 1. Start Both Services
+
+Ensure Docker Desktop is running, then execute:
+
+```bash
+docker compose up --build
+```
+
+To run in detached (background) mode:
+```bash
+docker compose up --build -d
+```
+
+### 2. Service URLs & Endpoints
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| **Streamlit Interactive UI** | [http://localhost:8501](http://localhost:8501) | Cave guide, Must-See walking route strip, and tour cost calculator |
+| **FastAPI Swagger Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | Interactive API documentation and schema explorer |
+| **System Health Check** | [http://localhost:8000/health](http://localhost:8000/health) | Server health, 20-record verification, and search status |
+| **Grounded RAG API** | `POST http://localhost:8000/ask` | Official ASI-grounded Q&A with structured citations |
+| **Autonomous Agent API** | `POST http://localhost:8000/agent` | LangGraph ReAct tour planner with approval workflow |
+
+### 3. Local Testing and Code Quality
+
+Run tests and linting locally using the virtual environment:
+
+```bash
+# Run the full pytest test suite (11+ unit, integration, RAG, and agent tests)
+pytest -v
+
+# Run the Ruff linter cleanly across all modules
+ruff check .
+```
+
+### 4. Stop Containers
+
+```bash
+docker compose down
+```
+
+---
+
+## Day 11: Testing, Code Quality & Docker Containerization
+
+Day 11 delivers production-grade software engineering practices, comprehensive test coverage (11+ tests), clean linting configuration with Ruff, and dual-container deployment via Docker Compose.
+
+### Test Suite Architecture (`tests/`)
+
+The automated test suite covers all 5 core domain areas with zero flakiness:
+1. **`conftest.py`**: Shared session-scoped `client` fixture with pre-initialized application state and `fake_llm` deterministic fixture patching RAG internals for instant (< 2s) offline testing without API keys.
+2. **`test_records_and_search.py`**:
+   - `test_load_records_count_and_schema`: Confirms all 20 records load with 6 required keys.
+   - `test_count_by_site`: Confirms 8 Ajanta and 12 Ellora caves.
+   - `test_get_by_id_and_keyword_search`: Validates retrieval of Ellora-16 (Kailasa) and Ajanta-1 (Padmapani).
+   - `test_smart_search_tfidf_ranking`: Verifies TF-IDF ranking places Kailasa Cave 16 at index 0 for monolithic temple queries.
+3. **`test_api_and_rag.py`**:
+   - `test_health_endpoint`: Asserts HTTP 200, status "ok", and records_count 20.
+   - `test_get_record_404_when_missing`: Asserts HTTP 404 for missing caves (`Ajanta-999`).
+   - `test_ask_endpoint_with_fake_llm`: Verifies `POST /ask` returns grounded Kailasa answers with official `asi.nic.in` citations.
+   - `test_ask_endpoint_q6_guardrail_i_dont_know`: Tests Q6 guardrail returns "I don't know" for tourist footfall queries.
+4. **`test_agent_tool.py`**:
+   - `test_cave_trip_planner_monday_tuesday_closures`: Validates Monday → Ellora and Tuesday → Ajanta assignments.
+   - `test_cave_trip_planner_ticket_arithmetic`: Validates 4 adults = Rs 320 (cash) / Rs 280 (online) and 40 students = Rs 0 free.
+   - `test_agent_loop_invokes_trip_planner`: Confirms the autonomous ReAct agent selects the planner tool and outputs accurate totals.
+
+---
+
 ## Git Commands
 
-### Day 10 Commit
+### Day 11 Commit
 ```powershell
-# Stage all Day 10 files
-git add ui/app.py docs/leniguide_ui_preview.svg docs/checkpoint_2_demo.md data/feedback.json README.md requirements.txt
+# Stage all Day 11 files
+git add tests/ Dockerfile .dockerignore docker-compose.yml pyproject.toml ui/app.py requirements.txt README.md app/smart_search.py
 
 # Commit with required prefix
-git commit -m "day-10: Streamlit UI with Must-See Route Strip, citations, thumbs feedback, and Checkpoint 2 demo guide"
-
-# Tag Checkpoint 2
-git tag checkpoint-2
+git commit -m "day-11: 11 passing pytest tests, clean ruff config, Dockerfile and docker-compose multi-service orchestration"
 
 # Push to GitHub
 git push origin main
-git push origin checkpoint-2
 ```
 
 ---
@@ -567,6 +635,11 @@ git push origin checkpoint-2
 - [x] Checkpoint 2 live demo script created (`docs/checkpoint_2_demo.md`)
 - [x] UI SVG visual preview generated (`docs/leniguide_ui_preview.svg`)
 - [x] User feedback persistence loop (`data/feedback.json`)
+- [x] Day 11 pytest test suite with 11+ passing tests (`tests/`)
+- [x] Clean Ruff linting configuration with zero errors (`pyproject.toml`)
+- [x] Production Dockerfile for Python 3.11-slim FastAPI + Streamlit deployment (`Dockerfile`)
+- [x] Docker Compose multi-service setup for `api` and `ui` (`docker-compose.yml`)
+- [x] Added `## Run with Docker` documentation in `README.md`
 
 ## License
 
@@ -575,4 +648,4 @@ Educational project for Sanjivani AI Training Program.
 ---
 
 **Developed for:** Sanjivani College of Engineering, Kopargaon  
-**Training Program:** 15-Day AI Course (Day 10 - S1 & S2: Streamlit UI / Checkpoint 2)
+**Training Program:** 15-Day AI Course (Day 11 - S1 & S2: Testing, Code Quality & Docker)

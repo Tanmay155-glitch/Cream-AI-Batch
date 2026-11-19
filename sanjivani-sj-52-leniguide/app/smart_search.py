@@ -3,11 +3,11 @@ Smart search module for LeniGuide using TF-IDF and cosine similarity.
 Ranks cave records by relevance to user queries using ML-based text similarity.
 """
 
-import sys
-from pathlib import Path
-from typing import List, Dict, Any, Optional
 import math
+import sys
 from collections import Counter
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Ensure app module can be imported
 current_dir = Path(__file__).parent
@@ -17,6 +17,7 @@ if str(project_root) not in sys.path:
 
 # Try importing scikit-learn, fallback to pure Python implementation
 import os
+
 SKLEARN_AVAILABLE = False
 if os.getenv("USE_SKLEARN", "0") == "1":
     try:
@@ -197,25 +198,25 @@ class SmartSearch:
                 for record in self.records[:top_k]
             ]
         
+        scored_records = []
         if SKLEARN_AVAILABLE and self.tfidf_matrix is not None:
             # Use scikit-learn implementation
             query_vec = self.vectorizer.transform([query])
             similarities = cosine_similarity(query_vec, self.tfidf_matrix).flatten()
+            for idx, score in enumerate(similarities):
+                if idx < len(self.records):
+                    record_copy = self.records[idx].copy()
+                    record_copy["score"] = round(float(score), 4)
+                    scored_records.append(record_copy)
+            scored_records.sort(key=lambda x: x["score"], reverse=True)
         else:
             # Use pure Python implementation
             results = pure_python_tfidf_search(self.corpus, query, top_k=len(self.records))
-            similarities = [score for idx, score in results]
-        
-        # Combine records with scores
-        scored_records = []
-        for idx, score in enumerate(similarities):
-            if idx < len(self.records):
-                record_copy = self.records[idx].copy()
-                record_copy["score"] = round(float(score), 4)
-                scored_records.append(record_copy)
-        
-        # Sort by score descending
-        scored_records.sort(key=lambda x: x["score"], reverse=True)
+            for orig_idx, score in results:
+                if orig_idx < len(self.records):
+                    record_copy = self.records[orig_idx].copy()
+                    record_copy["score"] = round(float(score), 4)
+                    scored_records.append(record_copy)
         
         # If no good matches (all scores near 0), fallback to substring search
         if scored_records and scored_records[0]["score"] < 0.01:
@@ -240,6 +241,13 @@ class SmartSearch:
                 return matches[:top_k]
         
         return scored_records[:top_k]
+
+    def rank(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        """
+        Rank cave records by relevance to query using TF-IDF and cosine similarity.
+        Alias for search() to support ranking test suites.
+        """
+        return self.search(query, top_k=top_k)
 
 
 # ============================================================================

@@ -1,0 +1,37 @@
+[project]
+name = "sanjivani-sj-52-leniguide"
+version = "1.5.0"
+description = "LeniGuide – Cave-by-cave guide to Ajanta & Ellora UNESCO World Heritage Sites"
+requires-python = ">=3.11"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+exclude = [
+    ".venv",
+    "venv",
+    "env",
+    ".git",
+    "__pycache__",
+    "data",
+    ".pytest_cache",
+    ".ruff_cache",
+    "docs",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = [
+    "E501",   # line too long – existing code has many long domain-text lines
+    "F401",   # unused import – some re-exports are used by other modules
+    "E402",   # module level import not at top – path-setup blocks precede imports
+    "F841",   # local variable assigned but never used – benign in some fallback paths
+    "E722",   # bare except – existing offline fallback code uses broad catches
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "ui"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

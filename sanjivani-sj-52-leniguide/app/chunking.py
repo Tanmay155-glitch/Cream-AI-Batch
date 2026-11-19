@@ -11,9 +11,9 @@ downstream embedding and retrieval never lose provenance.
 import json
 import re
 import sys
+from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from dataclasses import dataclass, field, asdict
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # ============================================================================
 # Path Resolution
@@ -519,7 +519,7 @@ if __name__ == "__main__":
         min_len = min(lengths)
         max_len = max(lengths)
 
-        print(f"\n📊 Chunk Statistics:")
+        print("\n📊 Chunk Statistics:")
         print(f"   Total chunks:       {len(chunks)}")
         print(f"   Average length:     {avg_len:.0f} chars")
         print(f"   Min length:         {min_len} chars")
@@ -527,7 +527,7 @@ if __name__ == "__main__":
 
         # Sample chunk
         sample = chunks[0]
-        print(f"\n📄 Sample Chunk (index 0):")
+        print("\n📄 Sample Chunk (index 0):")
         print(f"   chunk_id:  {sample['chunk_id']}")
         print(f"   title:     {sample['title']}")
         print(f"   source:    {sample['source']}")
@@ -538,7 +538,7 @@ if __name__ == "__main__":
         # Show ASI rules chunk
         rules = [c for c in chunks if "asi-rules" in c["chunk_id"]]
         if rules:
-            print(f"\n📄 ASI Rules Chunk Sample:")
+            print("\n📄 ASI Rules Chunk Sample:")
             r = rules[0]
             print(f"   chunk_id:  {r['chunk_id']}")
             print(f"   title:     {r['title']}")

@@ -3,8 +3,8 @@ Data models for LeniGuide cave records.
 Defines the Record dataclass with validation and serialization methods.
 """
 
-from dataclasses import dataclass, asdict, field
-from typing import Dict, Any
+from dataclasses import asdict, dataclass, field
+from typing import Any, Dict
 
 
 @dataclass

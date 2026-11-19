@@ -4,10 +4,11 @@ Student: Tanmay Subhash Gawali (Reg No: 2124UMLM2016, Branch: CSE AI & ML)
 Project: SJ-52 | Product: LeniGuide
 """
 
-import sys
 import json
-import pytest
+import sys
 from pathlib import Path
+
+import pytest
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -17,13 +18,12 @@ if str(PROJECT_ROOT) not in sys.path:
 from ui.app import (
     AJANTA_ROUTE,
     ELLORA_ROUTE,
+    FEEDBACK_FILE,
+    call_backend,
+    feedback_counts,
     load_feedback,
     save_feedback,
-    feedback_counts,
-    call_backend,
-    FEEDBACK_FILE,
 )
-
 
 # ============================================================================
 # 1. File Artifact & Configuration Tests

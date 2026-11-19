@@ -18,12 +18,12 @@ Computes:
 Outputs terminal comparison table and writes eval/eval_results.md.
 """
 
-import sys
 import json
+import sys
 import time
-from pathlib import Path
-from typing import List, Dict, Any
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:

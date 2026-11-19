@@ -9,13 +9,14 @@ Day 7 semantic search powered by ChromaDB vector store, and
 Day 8 grounded RAG with citations & out-of-scope guardrail via POST /ask.
 """
 
-import sys
-from pathlib import Path
-from typing import List, Dict, Any, Optional
-from datetime import datetime
 import json
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-from fastapi import FastAPI, Query, HTTPException, Path as PathParam, Body
+from fastapi import Body, FastAPI, HTTPException, Query
+from fastapi import Path as PathParam
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -25,12 +26,11 @@ project_root = current_dir.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from app.records import load_records, get_by_id
-from app.smart_search import SmartSearch
-from app.llm import generate_chat_response, LLMClient
-from app.rag import answer_question
 from app.graph import run_graph_agent
-
+from app.llm import LLMClient, generate_chat_response
+from app.rag import answer_question
+from app.records import get_by_id, load_records
+from app.smart_search import SmartSearch
 
 # ============================================================================
 # Pydantic Request & Response Models
@@ -316,7 +316,7 @@ def _ensure_vector_store():
         return
 
     try:
-        from app.vectorstore import index_chunks, get_collection, CHROMA_AVAILABLE
+        from app.vectorstore import CHROMA_AVAILABLE, get_collection, index_chunks
         if CHROMA_AVAILABLE:
             coll = get_collection()
             if coll is not None and coll.count() == 0:
@@ -342,7 +342,7 @@ async def startup_event():
         smart_search = SmartSearch(records)
         llm_client = LLMClient()
         print(f"✓ Loaded {len(records)} cave records")
-        print(f"✓ Initialized smart search engine")
+        print("✓ Initialized smart search engine")
         print(f"✓ Initialized LLM client ({llm_client.provider})")
     except Exception as e:
         print(f"✗ Startup warning: {e}")

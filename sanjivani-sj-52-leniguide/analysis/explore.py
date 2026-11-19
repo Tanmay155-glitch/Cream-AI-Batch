@@ -3,10 +3,11 @@ Exploratory Data Analysis for LeniGuide cave records using pandas.
 Analyzes site distribution, religious traditions, and visit duration patterns.
 """
 
+import json
 import sys
 from pathlib import Path
+
 import pandas as pd
-import json
 
 # Ensure project root is in path
 current_dir = Path(__file__).parent
@@ -61,7 +62,7 @@ def analyze_site_distribution(df: pd.DataFrame) -> None:
         print(f"  {site:.<20} {count:>3} caves ({percentage:>5.1f}%)")
     
     # Additional insights
-    print(f"\n📊 Analysis:")
+    print("\n📊 Analysis:")
     ajanta_count = site_counts.get("Ajanta", 0)
     ellora_count = site_counts.get("Ellora", 0)
     
@@ -122,7 +123,7 @@ def analyze_religious_traditions(df: pd.DataFrame) -> None:
     print(site_tradition.to_string())
     
     # Insights
-    print(f"\n📊 Analysis:")
+    print("\n📊 Analysis:")
     
     # Buddhist caves
     buddhist_by_site = df[df["tradition"] == "Buddhist"].groupby("site").size()
@@ -142,7 +143,7 @@ def analyze_religious_traditions(df: pd.DataFrame) -> None:
     # Diversity
     ellora_traditions = df[df["site"] == "Ellora"]["tradition"].nunique()
     print(f"  • Ellora showcases {ellora_traditions} different religious traditions")
-    print(f"  • This demonstrates religious harmony in ancient India")
+    print("  • This demonstrates religious harmony in ancient India")
 
 
 def analyze_visit_duration(df: pd.DataFrame) -> None:
@@ -188,7 +189,7 @@ def analyze_visit_duration(df: pd.DataFrame) -> None:
     print("\n⭐ Must-See (Top 5) Caves:")
     print("-" * 80)
     
-    must_see_caves = df[df["is_must_see"] == True]
+    must_see_caves = df[df["is_must_see"]]
     must_see_by_site = must_see_caves.groupby("site").size()
     
     print(f"  Total Must-See caves: {len(must_see_caves)}")
@@ -196,13 +197,13 @@ def analyze_visit_duration(df: pd.DataFrame) -> None:
         print(f"    {site}: {count} caves")
     
     # List must-see caves with durations
-    print(f"\n  Must-See Cave Details:")
+    print("\n  Must-See Cave Details:")
     for idx, row in must_see_caves.iterrows():
         duration = int(row["duration_mins"]) if pd.notna(row["duration_mins"]) else "N/A"
         print(f"    • {row['site']} Cave {row['cave_no']:>3} - {duration} mins - {row['religion_period']}")
     
     # Route planning insights
-    print(f"\n📊 Route Planning Analysis:")
+    print("\n📊 Route Planning Analysis:")
     
     total_duration = df["duration_mins"].sum()
     must_see_duration = must_see_caves["duration_mins"].sum()
@@ -218,8 +219,8 @@ def analyze_visit_duration(df: pd.DataFrame) -> None:
         print(f"  • {site} must-see caves: {int(site_duration)} mins ({site_duration/60:.1f} hours)")
     
     # Recommendations
-    print(f"\n💡 Recommendation for Teachers:")
-    print(f"  • For a 2-day tour with 40 students:")
+    print("\n💡 Recommendation for Teachers:")
+    print("  • For a 2-day tour with 40 students:")
     print(f"    - Day 1: Ajanta (closed Mondays) - Focus on {int(must_see_by_site.get('Ajanta', 0))} must-see caves")
     print(f"    - Day 2: Ellora (closed Tuesdays) - Focus on {int(must_see_by_site.get('Ellora', 0))} must-see caves")
     print(f"  • Budget time: {must_see_duration/60:.1f} hours for must-see caves + breaks")

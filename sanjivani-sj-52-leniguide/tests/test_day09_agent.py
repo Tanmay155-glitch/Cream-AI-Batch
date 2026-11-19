@@ -6,17 +6,17 @@ Project: SJ-52 | Product: LeniGuide (Ajanta & Ellora UNESCO Heritage Guide)
 
 import sys
 from pathlib import Path
+
 import pytest
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from app.tools import cave_trip_planner, extract_trip_params, rag_search_tool
-from app.agent_loop import run_agent_loop, LeniGuideAgent
+from app.agent_loop import LeniGuideAgent, run_agent_loop
 from app.graph import run_graph_agent
-from app.main import app, agent_endpoint, AgentRequest, ask_endpoint, AskRequest
-
+from app.main import AgentRequest, AskRequest, agent_endpoint, app, ask_endpoint
+from app.tools import cave_trip_planner, extract_trip_params, rag_search_tool
 
 # ============================================================================
 # Session 1: Tools Tests

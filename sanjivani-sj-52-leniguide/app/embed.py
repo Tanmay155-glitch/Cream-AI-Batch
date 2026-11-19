@@ -13,14 +13,14 @@ Embedding Strategy:
               safe in restricted Windows AppLocker and minimal CI environments.
 """
 
+import hashlib
 import json
 import math
-import sys
 import re
-import hashlib
-from pathlib import Path
-from typing import List, Dict, Any, Optional
+import sys
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 

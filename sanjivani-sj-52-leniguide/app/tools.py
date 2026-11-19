@@ -12,11 +12,11 @@ Provides:
 - TOOLS registry and JSON schema declarations for LLM function calling.
 """
 
-import sys
 import re
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -443,7 +443,7 @@ if __name__ == "__main__":
         print(f"  Day {s['day']} ({s['weekday']}, {s['date']}): {s['assigned_site']} -> {s['closing_rule']}")
 
     fb = plan["fee_breakdown"]
-    print(f"\nFee Breakdown:")
+    print("\nFee Breakdown:")
     print(f"  Adults: 4 x Rs 40 = Rs {fb['cash_per_site_inr']} cash (Rs {fb['online_per_site_inr']} online) per site")
     print(f"  Total (2 sites): Rs {fb['cash_total_inr']} cash | Rs {fb['online_total_inr']} online")
     print(f"  Children under 15: Rs {fb['children_cost_inr']} (FREE as per ASI)")

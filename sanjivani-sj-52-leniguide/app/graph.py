@@ -12,27 +12,21 @@ Provides:
   and rag_search (official heritage records & citations).
 """
 
-import sys
 import re
+import sys
 import time
 from pathlib import Path
-from typing import Dict, Any, List, Optional, TypedDict
+from typing import Any, Dict, List, Optional, TypedDict
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
 
-from app.tools import (
-    cave_trip_planner,
-    rag_search_tool,
-    extract_trip_params,
-    TOOLS
-)
 from app.rag import is_unanswerable_query
-
+from app.tools import TOOLS, cave_trip_planner, extract_trip_params, rag_search_tool
 
 # ============================================================================
 # LangGraph Agent State
@@ -341,14 +335,14 @@ def synthesizer_node(state: AgentState) -> Dict[str, Any]:
 
         else:  # "approved"
             answer_parts = [
-                f"### [CONFIRMED] LeniGuide 2-Day Study Tour Plan & Ticket Cost\n",
+                "### [CONFIRMED] LeniGuide 2-Day Study Tour Plan & Ticket Cost\n",
                 f"**Target Group:** {adults} Teachers (Adults) & {students} Students (<15 Years)",
                 f"**Dates:** {day1['weekday']}, {day1['date']}" + (f" and {day2['weekday']}, {day2['date']}" if day2 else ""),
-                f"\n#### 1. Daily Site Assignment (Official ASI Closing Rules)",
+                "\n#### 1. Daily Site Assignment (Official ASI Closing Rules)",
                 f"- **Day 1 ({day1['weekday']}, {day1['date']}): Visit {day1['assigned_site']} Caves**",
                 f"  * *Reason:* {day1['closing_rule']}",
                 f"  * *Timings:* {day1['site_status']}",
-                f"  * *Must-See Highlights:*",
+                "  * *Must-See Highlights:*",
             ]
             for h in day1["must_see_highlights"]:
                 answer_parts.append(f"    - {h}")
@@ -358,18 +352,18 @@ def synthesizer_node(state: AgentState) -> Dict[str, Any]:
                     f"\n- **Day 2 ({day2['weekday']}, {day2['date']}): Visit {day2['assigned_site']} Caves**",
                     f"  * *Reason:* {day2['closing_rule']}",
                     f"  * *Timings:* {day2['site_status']}",
-                    f"  * *Must-See Highlights:*",
+                    "  * *Must-See Highlights:*",
                 ])
                 for h in day2["must_see_highlights"]:
                     answer_parts.append(f"    - {h}")
 
             answer_parts.extend([
-                f"\n#### 2. Official ASI Entry Fee Calculation",
+                "\n#### 2. Official ASI Entry Fee Calculation",
                 f"- **Teachers / Adults ({adults} persons):**",
                 f"  * Per site: Rs {fees['online_per_site_inr']} (Online @ Rs 35/adult) vs Rs {fees['cash_per_site_inr']} (Cash @ Rs 40/adult)",
                 f"  * **Total for 2-day tour ({tool_result['unique_sites_count']} sites): Rs {fees['online_total_inr']} (Online)** OR **Rs {fees['cash_total_inr']} (Cash)**",
                 f"- **Students under 15 ({students} students):**",
-                f"  * **Rs 0 (100% FREE entry)** under official ASI policy (carry valid school ID cards)",
+                "  * **Rs 0 (100% FREE entry)** under official ASI policy (carry valid school ID cards)",
                 f"- **Recommended Mode:** Book online via the official ASI portal to save **Rs {fees['savings_online_inr']}** and bypass ticket queues.",
                 f"\n*Status: {approval_status.upper()} | All timings and fees verified against official ASI records (asi.nic.in)*"
             ])
@@ -494,7 +488,7 @@ if __name__ == "__main__":
 
     # Test 1: Direct Tour Plan (Q4)
     q4 = "We are 4 teachers and 40 students under 15 coming on 14-15 December. Which site on which day, and total ticket cost?"
-    print(f"\n[Test 1: Single-Turn Q4] Thread: q4-thread-1")
+    print("\n[Test 1: Single-Turn Q4] Thread: q4-thread-1")
     res1 = run_graph_agent(question=q4, thread_id="q4-thread-1")
     print(f"Tools Used: {res1['tools_used']}")
     print(f"Approval Status: {res1['approval_status']}")

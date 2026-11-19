@@ -12,7 +12,7 @@ transparently delegates to the in-memory vector index from app.embed.
 
 import sys
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 # ============================================================================
 # Path Resolution
@@ -326,7 +326,7 @@ if __name__ == "__main__":
     print("=" * 80)
 
     if CHROMA_AVAILABLE:
-        print(f"\n✓ ChromaDB available")
+        print("\n✓ ChromaDB available")
         print(f"  Persistent storage: {CHROMA_DIR}")
     else:
         print("\n⚠ ChromaDB not installed, using in-memory fallback")
@@ -354,7 +354,7 @@ if __name__ == "__main__":
             print(f"       Snippet: {r['text'][:80]}...")
 
     # Test site filter
-    print(f"\n🔍 Filtered Query (site='Ellora'): \"Buddhist chaitya hall\"")
+    print("\n🔍 Filtered Query (site='Ellora'): \"Buddhist chaitya hall\"")
     print("-" * 60)
     filtered = store.search("Buddhist chaitya hall", top_k=3, site="Ellora")
     for rank, r in enumerate(filtered, 1):

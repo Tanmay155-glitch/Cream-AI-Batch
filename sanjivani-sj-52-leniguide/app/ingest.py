@@ -3,11 +3,11 @@ Data ingestion and cleaning pipeline for LeniGuide.
 Loads, validates, cleans, and normalizes cave records into data/records.json.
 """
 
-import sys
 import json
-from pathlib import Path
-from typing import List, Dict, Any, Optional
+import sys
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Ensure app module can be imported
 current_dir = Path(__file__).parent
@@ -245,11 +245,11 @@ def ingest_and_save(dry_run: bool = False) -> Dict[str, int]:
     raw_verification = verify_raw_data()
     
     if raw_verification["raw_dir_exists"]:
-        print(f"  ✓ Raw data directory exists")
+        print("  ✓ Raw data directory exists")
         for filename, metadata in raw_verification["files"].items():
             print(f"  ✓ {filename}: {metadata['size_kb']:.1f} KB")
     else:
-        print(f"  ⚠ Raw data directory not found (run 'python -m app.fetch' first)")
+        print("  ⚠ Raw data directory not found (run 'python -m app.fetch' first)")
     
     # Step 2: Load sample records
     print("\n📥 Step 2: Loading source records...")
@@ -259,7 +259,7 @@ def ingest_and_save(dry_run: bool = False) -> Dict[str, int]:
         
         if dry_run:
             raw_records = inject_test_malformed_records(raw_records)
-            print(f"  ⚠ DRY RUN: Injected 3 malformed test records")
+            print("  ⚠ DRY RUN: Injected 3 malformed test records")
             print(f"  ✓ Total records to process: {len(raw_records)}")
     except FileNotFoundError as e:
         print(f"  ✗ Error: {e}")
@@ -325,7 +325,7 @@ def ingest_and_save(dry_run: bool = False) -> Dict[str, int]:
     print(f"  Success rate:             {stats['valid_records']/stats['total_processed']*100:.1f}%")
     
     if stats["errors"]:
-        print(f"\n⚠ Skipped Records Details:")
+        print("\n⚠ Skipped Records Details:")
         for error in stats["errors"]:
             print(f"  • Row {error['row_index']} (Cave {error['cave_no']}): "
                   f"{error['error_type']} - {error['error_message'][:60]}")
@@ -333,7 +333,7 @@ def ingest_and_save(dry_run: bool = False) -> Dict[str, int]:
     print("\n" + "=" * 80)
     print("INGESTION COMPLETE")
     print("=" * 80)
-    print(f"\nNext step: Run 'python -m app.cli' to browse the cleaned data")
+    print("\nNext step: Run 'python -m app.cli' to browse the cleaned data")
     
     return stats
 
