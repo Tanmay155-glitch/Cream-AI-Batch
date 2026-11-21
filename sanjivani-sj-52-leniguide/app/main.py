@@ -10,6 +10,7 @@ Day 8 grounded RAG with citations & out-of-scope guardrail via POST /ask.
 """
 
 import json
+import os
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -315,6 +316,12 @@ def _ensure_vector_store():
     if _vector_store_ready:
         return
 
+    # Skip heavy model downloads in CI / offline test environments
+    if os.getenv("LLM_PROVIDER", "").lower() == "offline":
+        _vector_store_ready = True
+        print("✓ Vector store skipped (offline mode)")
+        return
+
     try:
         from app.vectorstore import CHROMA_AVAILABLE, get_collection, index_chunks
         if CHROMA_AVAILABLE:
@@ -398,8 +405,11 @@ async def health_check():
 
     return {
         "status": "ok",
+        "app": "LeniGuide",
         "product": "LeniGuide",
         "project_id": "SJ-52",
+        "version": "1.1.0",
+        "asi_source_verified": "2026-11",
         "records_count": len(records),
         "search_enabled": smart_search is not None,
         "semantic_search_enabled": _vector_store_ready,

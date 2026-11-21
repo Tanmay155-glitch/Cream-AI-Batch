@@ -1,22 +1,28 @@
 """
-Day 11 – Tests for FastAPI endpoints and RAG pipeline.
+Day 11/12 – Tests for FastAPI endpoints and RAG pipeline.
 Student: Tanmay Subhash Gawali (Reg No: 2124UMLM2016, Branch: CSE AI & ML)
 Project: SJ-52 | Product: LeniGuide
 
-4 tests: GET /health, GET /records/{id} 404, POST /ask (fake LLM), POST /ask Q6 guardrail.
+5 tests: GET /health (+ ASI metadata), GET /records/{id} 404,
+         POST /ask (fake LLM), POST /ask Q6 guardrail.
 """
 
 
 # ============================================================================
-# Test 5: GET /health returns 200, status ok, records_count 20
+# Test 5: GET /health returns 200, status ok, records_count 20, ASI metadata
 # ============================================================================
 def test_health_endpoint(client):
-    """Verify GET /health returns status 200 with records_count == 20."""
+    """Verify GET /health returns status 200 with records_count == 20 and ASI metadata."""
     resp = client.get("/health")
     assert resp.status_code == 200, f"Expected 200, got {resp.status_code}"
     body = resp.json()
     assert body["status"] == "ok", f"Expected status 'ok', got {body['status']}"
     assert body["records_count"] == 20, f"Expected 20 records, got {body['records_count']}"
+    # Day 12: Verify enriched ASI metadata fields from feat/health-asi-metadata
+    assert body["project_id"] == "SJ-52", f"Expected project_id 'SJ-52', got {body.get('project_id')}"
+    assert "asi_source_verified" in body, "Missing 'asi_source_verified' field in /health"
+    assert body["app"] == "LeniGuide", f"Expected app 'LeniGuide', got {body.get('app')}"
+    assert "version" in body, "Missing 'version' field in /health"
 
 
 # ============================================================================
