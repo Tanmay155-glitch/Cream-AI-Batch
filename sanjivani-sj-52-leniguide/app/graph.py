@@ -22,6 +22,30 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# Safe fallback shim for platforms where ormsgpack C-extension DLL cannot load
+try:
+    import ormsgpack
+except (ImportError, Exception):
+    import json
+    import types
+    _dummy = types.ModuleType("ormsgpack")
+    for _attr in [
+        "OPT_DATETIME_AS_TIMESTAMP_EXT", "OPT_NAIVE_UTC", "OPT_NON_STR_KEYS",
+        "OPT_OMIT_MICROSECONDS", "OPT_PASSTHROUGH_BIG_INT", "OPT_PASSTHROUGH_DATACLASS",
+        "OPT_PASSTHROUGH_DATETIME", "OPT_PASSTHROUGH_ENUM", "OPT_PASSTHROUGH_SUBCLASS",
+        "OPT_PASSTHROUGH_TUPLE", "OPT_PASSTHROUGH_UUID", "OPT_REPLACE_SURROGATES",
+        "OPT_SERIALIZE_NUMPY", "OPT_SERIALIZE_PYDANTIC", "OPT_SORT_KEYS", "OPT_UTC_Z"
+    ]:
+        setattr(_dummy, _attr, 0)
+    _dummy.Ext = None
+    _dummy.Fragment = None
+    _dummy.MsgpackDecodeError = ValueError
+    _dummy.MsgpackEncodeError = ValueError
+    _dummy.__version__ = "1.0.0"
+    _dummy.packb = lambda obj, default=None, option=0: json.dumps(obj, default=default).encode("utf-8")
+    _dummy.unpackb = lambda b, ext_hook=None: json.loads(b.decode("utf-8"))
+    sys.modules["ormsgpack"] = _dummy
+
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 

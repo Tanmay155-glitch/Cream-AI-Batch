@@ -28,8 +28,9 @@ COPY analysis/ ./analysis/
 COPY pyproject.toml .
 COPY README.md .
 
-# Expose FastAPI backend (8000) and Streamlit UI (8501) ports
-EXPOSE 8000 8501
+# Expose default FastAPI backend port (overridden by $PORT on cloud hosts)
+EXPOSE 8000
 
 # Default command: start FastAPI backend server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Cloud hosts (Render, HF Spaces) inject $PORT; locally defaults to 8000
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"]

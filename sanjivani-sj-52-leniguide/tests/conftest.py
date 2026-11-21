@@ -36,15 +36,20 @@ def client():
     and instead inject the minimal state the API endpoints need: 20 cave
     records, the SmartSearch engine, and an offline LLM client.
     """
+    import os
+    # Ensure offline mode so _ensure_vector_store skips heavy model loads
+    os.environ.setdefault("LLM_PROVIDER", "offline")
+
     import app.main as main_module
     from app.llm import LLMClient
     from app.records import load_records
     from app.smart_search import SmartSearch
 
+    # Pre-set vector store flag BEFORE TestClient triggers startup_event
+    main_module._vector_store_ready = True
     main_module.records = load_records()
     main_module.smart_search = SmartSearch(main_module.records)
     main_module.llm_client = LLMClient()
-    main_module._vector_store_ready = True
 
     return TestClient(main_module.app)
 
