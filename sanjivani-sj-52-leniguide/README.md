@@ -1,5 +1,7 @@
 # LeniGuide - Ajanta & Ellora Caves Guide
 
+[![LeniGuide CI](https://github.com/Tanmay155-glitch/Cream-AI-Batch/actions/workflows/ci.yml/badge.svg)](https://github.com/Tanmay155-glitch/Cream-AI-Batch/actions/workflows/ci.yml)
+
 **Student:** Tanmay Subhash Gawali  
 **Registration Number:** 2124UMLM2016  
 **Branch:** CSE AI & ML  
@@ -640,6 +642,58 @@ git push origin main
 - [x] Production Dockerfile for Python 3.11-slim FastAPI + Streamlit deployment (`Dockerfile`)
 - [x] Docker Compose multi-service setup for `api` and `ui` (`docker-compose.yml`)
 - [x] Added `## Run with Docker` documentation in `README.md`
+- [x] Day 12 GitHub Actions CI workflow running `ruff`, `pytest`, and `docker build` (`.github/workflows/ci.yml`)
+- [x] Green CI status badge in `README.md`
+- [x] Feature branch `feat/health-asi-metadata` Pull Request verified by CI and merged into `main`
+- [x] Cloud deployment blueprint for Render Web Service (`render.yaml`)
+- [x] Docker dynamic `$PORT` binding for Render (10000) and Hugging Face Spaces (7860)
+- [x] Live cloud deployment with public `/health` endpoint verified
+
+## Live Deployment (Day 12)
+
+LeniGuide is continuously tested with GitHub Actions CI and deployed as a production Docker web service on Render (with Hugging Face Spaces as container backup).
+
+- **Live API Base URL:** [https://leniguide-sj-52.onrender.com](https://leniguide-sj-52.onrender.com)
+- **Public Health Endpoint:** [https://leniguide-sj-52.onrender.com/health](https://leniguide-sj-52.onrender.com/health)
+- **Interactive API Documentation (Swagger UI):** [https://leniguide-sj-52.onrender.com/docs](https://leniguide-sj-52.onrender.com/docs)
+- **ReDoc Documentation:** [https://leniguide-sj-52.onrender.com/redoc](https://leniguide-sj-52.onrender.com/redoc)
+- **Alternative HF Spaces URL:** [https://tanmay155-glitch-leniguide-sj-52.hf.space/health](https://tanmay155-glitch-leniguide-sj-52.hf.space/health)
+
+### CI/CD Workflow & Pull Request Verification
+
+All code changes are automatically verified by **LeniGuide CI** (`.github/workflows/ci.yml`) before merging:
+1. **Lint Check:** `ruff check .` ensures clean, PEP-8 compliant code.
+2. **Automated Testing:** `pytest -v` runs the full unit/integration suite with deterministic offline mocks (`LLM_PROVIDER=offline`).
+3. **Container Build Verification:** `docker build -t leniguide-api:ci .` verifies the container compiles cleanly.
+4. **Pull Request Workflow:** Feature branch `feat/health-asi-metadata` was opened, passed all automated CI checks with a green checkmark, and was merged into `main`.
+
+### Public Health Check Verification
+
+The live endpoint returns official ASI verification metadata, cave counts, and service status:
+
+```bash
+curl -s -i https://leniguide-sj-52.onrender.com/health
+```
+
+**Expected JSON Response:**
+```json
+{
+  "status": "ok",
+  "app": "LeniGuide",
+  "product": "LeniGuide",
+  "project_id": "SJ-52",
+  "version": "1.1.0",
+  "asi_source_verified": "2026-11",
+  "records_count": 20,
+  "search_enabled": true,
+  "semantic_search_enabled": true,
+  "rag_enabled": true,
+  "vector_store": "in-memory fallback",
+  "chat_enabled": true,
+  "llm_provider": "offline_rule_based",
+  "timestamp": "2026-11-20T15:00:00.000000"
+}
+```
 
 ## License
 
@@ -648,4 +702,4 @@ Educational project for Sanjivani AI Training Program.
 ---
 
 **Developed for:** Sanjivani College of Engineering, Kopargaon  
-**Training Program:** 15-Day AI Course (Day 11 - S1 & S2: Testing, Code Quality & Docker)
+**Training Program:** 15-Day AI Course (Day 12 - S1 & S2: CI/CD with GitHub Actions & Cloud Deployment)
