@@ -1,10 +1,37 @@
-# Root Git Ignore
-.env
-.env.*
-!.env.example
+# Python
 .venv/
-venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Environment
+.env
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Project specific
+.chroma/
+logs/
+data/feedback.jsonl
+data/raw/
+
+# OS
 .DS_Store
 Thumbs.db

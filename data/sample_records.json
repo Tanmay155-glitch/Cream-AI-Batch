@@ -1,0 +1,182 @@
+[
+  {
+    "id": "ajanta-001",
+    "site": "ajanta",
+    "cave_no": "1",
+    "religion_period": "Buddhist (Mahayana), 5th century CE",
+    "highlights": "Vihara with elaborate paintings including Bodhisattva Padmapani and Bodhisattva Vajrapani. Well-preserved murals showing court scenes and Jataka tales.",
+    "visit_info": "One of the finest painted caves; allow 15-20 minutes for detailed viewing.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ajanta-002",
+    "cave_no": "2",
+    "site": "ajanta",
+    "religion_period": "Buddhist (Mahayana), 5th century CE",
+    "highlights": "Large vihara known for exceptional ceiling paintings including geometric and floral patterns. Features paintings of Hariti (goddess of fertility) and other Buddhist deities.",
+    "visit_info": "Famous for ceiling art and wall paintings; plan 15-20 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ajanta-009",
+    "cave_no": "9",
+    "site": "ajanta",
+    "religion_period": "Buddhist (Hinayana), 1st century BCE",
+    "highlights": "Early chaitya hall (prayer hall) with stupa. Simple and austere design from the Hinayana phase. Horseshoe-shaped arch entrance.",
+    "visit_info": "One of the oldest caves; architectural significance; 10 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ajanta-010",
+    "cave_no": "10",
+    "site": "ajanta",
+    "religion_period": "Buddhist (Hinayana), 2nd century BCE",
+    "highlights": "The earliest cave at Ajanta. Chaitya hall with octagonal columns and a votive stupa at the rear. Inscriptions from later periods on the walls.",
+    "visit_info": "Historically the oldest dated cave; 10 minutes for viewing.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ajanta-016",
+    "cave_no": "16",
+    "site": "ajanta",
+    "religion_period": "Buddhist (Mahayana), 5th century CE",
+    "highlights": "Vihara with famous 'Dying Princess' mural (Sundari fainting upon hearing of Nanda's renunciation). Large hall with elaborate carvings and paintings.",
+    "visit_info": "Known for the emotional 'Dying Princess' scene; 15 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ajanta-017",
+    "cave_no": "17",
+    "site": "ajanta",
+    "religion_period": "Buddhist (Mahayana), 5th century CE",
+    "highlights": "One of the most richly painted caves with numerous Jataka tales illustrated. Features the Wheel of Life, scenes from Buddha's life, and elaborate decorative motifs.",
+    "visit_info": "Extensive paintings; best preserved murals; allow 20 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ajanta-019",
+    "cave_no": "19",
+    "site": "ajanta",
+    "religion_period": "Buddhist (Mahayana), 5th century CE",
+    "highlights": "Ornate chaitya hall with elaborate facade featuring intricate carvings. Buddha figures in teaching posture, decorated columns and horseshoe window.",
+    "visit_info": "Architecturally ornate; noted for detailed facade; 10-15 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ajanta-026",
+    "cave_no": "26",
+    "site": "ajanta",
+    "religion_period": "Buddhist (Mahayana), 5th century CE",
+    "highlights": "Large chaitya hall with magnificent sculptures including a reclining Buddha in parinirvana (death) position. Elaborate pillars and detailed narrative panels.",
+    "visit_info": "Notable for parinirvana sculpture and grand scale; 15-20 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ajanta_Caves"
+  },
+  {
+    "id": "ellora-005",
+    "cave_no": "5",
+    "site": "ellora",
+    "religion_period": "Buddhist, 7th century CE",
+    "highlights": "Large vihara with two rows of benches running the length of the hall, suggesting it may have been used as a dining hall. Simple but spacious design.",
+    "visit_info": "Unique dining hall layout; 10 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-010",
+    "cave_no": "10",
+    "site": "ellora",
+    "religion_period": "Buddhist, 7th century CE",
+    "highlights": "Vishvakarma Cave or 'Carpenter's Cave' - chaitya hall with vaulted ceiling resembling wooden architecture. Large Buddha statue in preaching pose.",
+    "visit_info": "Known as Carpenter's Cave; beautiful chaitya hall; 15 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-012",
+    "cave_no": "12",
+    "site": "ellora",
+    "religion_period": "Buddhist, 7th century CE",
+    "highlights": "Three-story vihara known as Tin Thal. Contains Buddha figures in teaching and meditation poses across multiple levels. Large monastery complex.",
+    "visit_info": "Multi-story monastery structure; allow 15 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-014",
+    "cave_no": "14",
+    "site": "ellora",
+    "religion_period": "Hindu, 8th century CE",
+    "highlights": "Ravana ki Khai cave. Features sculptures of Hindu deities including Durga, Vishnu, and Shiva. Marks the transition from Buddhist to Hindu caves.",
+    "visit_info": "Transition period architecture; 10 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-015",
+    "cave_no": "15",
+    "site": "ellora",
+    "religion_period": "Hindu, 8th century CE",
+    "highlights": "Dashavatara Cave featuring the ten avatars of Vishnu. Two-story structure with elaborate carvings of Shiva and Vishnu legends.",
+    "visit_info": "Rich sculptural narrative; notable Shiva panels; 15 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-016",
+    "cave_no": "16",
+    "site": "ellora",
+    "religion_period": "Hindu (Rashtrakuta), 8th century CE",
+    "highlights": "The Kailasa Temple - monolithic temple carved from top down out of a single rock. Dedicated to Shiva, it represents Mount Kailash. Features intricate sculptures of gods, goddesses, and mythological scenes across multiple levels. Considered one of the most remarkable rock-cut structures in the world.",
+    "visit_info": "UNESCO highlight; allow 45-60 minutes for full exploration. Must-see.",
+    "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves"
+  },
+  {
+    "id": "ellora-021",
+    "cave_no": "21",
+    "site": "ellora",
+    "religion_period": "Hindu, 8th century CE",
+    "highlights": "Rameshvara Cave with elegant sculptures of river goddesses Ganga and Yamuna at entrance. Features fine carvings of Shiva, Parvati, and attendants.",
+    "visit_info": "Known for graceful goddess sculptures; 10-15 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-029",
+    "cave_no": "29",
+    "site": "ellora",
+    "religion_period": "Hindu, 8th century CE",
+    "highlights": "Dhumar Lena cave similar in plan to Elephanta caves. Features large sculptures of Shiva including Shiva slaying demon Andhaka. Cross-shaped plan with shrines.",
+    "visit_info": "Elephanta-style layout; Shiva legends; 10 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-030",
+    "cave_no": "30",
+    "site": "ellora",
+    "religion_period": "Jain, 9th century CE",
+    "highlights": "Chhota Kailash (Small Kailash) - Jain cave resembling the Kailasa temple in layout but smaller. Dedicated to Jain Tirthankaras. Incomplete due to rock flaws.",
+    "visit_info": "Miniature Kailasa design; 10 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-032",
+    "cave_no": "32",
+    "site": "ellora",
+    "religion_period": "Jain, 9th century CE",
+    "highlights": "Indra Sabha (Assembly Hall of Indra) - elaborate two-story Jain temple with a monolithic shrine. Features intricate carvings of Jain Tirthankaras, lotus ceiling, and Ambika (Yakshi) sculpture.",
+    "visit_info": "Most ornate Jain cave; allow 15-20 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-033",
+    "cave_no": "33",
+    "site": "ellora",
+    "religion_period": "Jain, 9th century CE",
+    "highlights": "Jagannatha Sabha with detailed carvings of Mahavira and other Tirthankaras. Features a central shrine and elaborate pillars with floral motifs.",
+    "visit_info": "Detailed Jain iconography; 10 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  },
+  {
+    "id": "ellora-034",
+    "cave_no": "34",
+    "site": "ellora",
+    "religion_period": "Jain, 9th century CE",
+    "highlights": "Small Jain cave with a single-story layout. Contains sculptures of Tirthankaras and guardian figures. Relatively simple compared to nearby Jain caves.",
+    "visit_info": "Smaller Jain shrine; 5-10 minutes.",
+    "source_url": "https://en.wikipedia.org/wiki/Ellora_Caves"
+  }
+]
