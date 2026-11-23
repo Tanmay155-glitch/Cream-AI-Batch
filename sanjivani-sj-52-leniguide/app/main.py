@@ -5,8 +5,11 @@ Project: SJ-52 | Product: LeniGuide (Ajanta & Ellora UNESCO Heritage Guide)
 
 Provides endpoints for cave record search, retrieval, question logging,
 GenAI / LLM chat powered by Groq / Gemini with ASI domain grounding,
-Day 7 semantic search powered by ChromaDB vector store, and
-Day 8 grounded RAG with citations & out-of-scope guardrail via POST /ask.
+Day 7 semantic search powered by ChromaDB vector store,
+Day 8 grounded RAG with citations & out-of-scope guardrail via POST /ask,
+Day 9 LangGraph agent with approval gate via POST /agent, and
+Day 13 production hardening: input validation, prompt-injection guard,
+      TTL response cache, and latency / token / cost observability.
 """
 
 import json
@@ -27,10 +30,24 @@ project_root = current_dir.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
+from app.cache import response_cache
 from app.graph import run_graph_agent
 from app.llm import LLMClient, generate_chat_response
+from app.observability import (
+    build_meta,
+    compute_latency_ms,
+    estimate_tokens,
+    log_request,
+    start_timer,
+)
 from app.rag import answer_question
 from app.records import get_by_id, load_records
+from app.security import (
+    INJECTION_REFUSAL,
+    MAX_QUERY_LENGTH,
+    detect_prompt_injection,
+    validate_query_length,
+)
 from app.smart_search import SmartSearch
 
 # ============================================================================
@@ -98,6 +115,7 @@ class ChatResponse(BaseModel):
     follow_up: str = Field(..., description="Helpful follow-up suggestion, question, or tip")
     sources: Optional[List[str]] = Field(default=None, description="List of referenced cave IDs")
     task: Optional[str] = Field(default="cave_qa", description="Active task prompt type")
+    meta: Optional[Dict[str, Any]] = Field(default=None, description="Observability metadata")
 
     class Config:
         json_schema_extra = {
@@ -146,6 +164,7 @@ class AskResponse(BaseModel):
     abstained: bool
     latency_ms: Optional[float] = None
     config: Optional[Dict[str, Any]] = None
+    meta: Optional[Dict[str, Any]] = None
 
 
 # Day 9 LangGraph Agent Models
@@ -194,6 +213,7 @@ class AgentResponse(BaseModel):
     abstained: bool = False
     history_length: int = 0
     latency_ms: Optional[float] = None
+    meta: Optional[Dict[str, Any]] = None
 
 
 # ============================================================================
@@ -203,7 +223,7 @@ class AgentResponse(BaseModel):
 app = FastAPI(
     title="LeniGuide API",
     description="Cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites with GenAI Chat, Semantic Search, Grounded RAG & Autonomous LangGraph Agents",
-    version="1.4.0",
+    version="1.5.0",
     contact={
         "name": "Tanmay Subhash Gawali",
         "email": "tanmay.gawali@sanjivani.org.in"
@@ -221,7 +241,7 @@ _vector_store_ready: bool = False
 def initialize_questions_file():
     """Initialize questions.json with default 10 LeniGuide questions if not exists."""
     questions_file = project_root / "data" / "questions.json"
-    
+
     if not questions_file.exists():
         default_questions = [
             {
@@ -285,11 +305,11 @@ def initialize_questions_file():
                 "answerable": True
             }
         ]
-        
+
         questions_file.parent.mkdir(exist_ok=True)
         with open(questions_file, 'w', encoding='utf-8') as f:
             json.dump(default_questions, f, indent=2, ensure_ascii=False)
-        
+
         print(f"✓ Initialized {len(default_questions)} default questions")
 
 
@@ -297,7 +317,7 @@ def load_questions():
     """Load questions from data/questions.json."""
     global questions_log
     questions_file = project_root / "data" / "questions.json"
-    
+
     if questions_file.exists():
         try:
             with open(questions_file, 'r', encoding='utf-8') as f:
@@ -316,10 +336,9 @@ def _ensure_vector_store():
     if _vector_store_ready:
         return
 
-    # Skip heavy model downloads in CI / offline test environments
-    if os.getenv("LLM_PROVIDER", "").lower() == "offline":
+    # Skip heavy model downloads in CI / offline / test environments
+    if os.getenv("LLM_PROVIDER", "").lower() in ["offline", "fake", "test"]:
         _vector_store_ready = True
-        print("✓ Vector store skipped (offline mode)")
         return
 
     try:
@@ -343,7 +362,7 @@ def _ensure_vector_store():
 async def startup_event():
     """Load cave records, initialize search engine, set up LLM client, and prep vector store."""
     global records, smart_search, llm_client
-    
+
     try:
         records = load_records()
         smart_search = SmartSearch(records)
@@ -356,10 +375,27 @@ async def startup_event():
         records = []
         smart_search = None
         llm_client = LLMClient()
-    
+
     initialize_questions_file()
     load_questions()
     _ensure_vector_store()
+
+
+# ============================================================================
+# Shared security guard helper
+# ============================================================================
+
+def _guard_query(user_query: str) -> None:
+    """
+    Run input-length and prompt-injection checks.
+    Raises HTTPException(400) on failure.
+    """
+    valid, err_msg = validate_query_length(user_query)
+    if not valid:
+        raise HTTPException(status_code=400, detail=err_msg)
+
+    if detect_prompt_injection(user_query):
+        raise HTTPException(status_code=400, detail=INJECTION_REFUSAL)
 
 
 # ============================================================================
@@ -391,7 +427,7 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint reporting system status."""
+    """Health check endpoint reporting system status including cache metrics."""
     vector_store_status = "unknown"
     try:
         from app.vectorstore import CHROMA_AVAILABLE, get_collection
@@ -408,7 +444,7 @@ async def health_check():
         "app": "LeniGuide",
         "product": "LeniGuide",
         "project_id": "SJ-52",
-        "version": "1.1.0",
+        "version": "1.5.0",
         "asi_source_verified": "2026-11",
         "records_count": len(records),
         "search_enabled": smart_search is not None,
@@ -417,24 +453,27 @@ async def health_check():
         "vector_store": vector_store_status,
         "chat_enabled": True,
         "llm_provider": llm_client.provider if llm_client else "offline_rule_based",
+        "cache": response_cache.stats(),
         "timestamp": datetime.now().isoformat()
     }
 
 
 # ============================================================================
-# Day 8: Grounded RAG Endpoint (POST /ask)
+# Day 8: Grounded RAG Endpoint (POST /ask) — with security, cache & obs
 # ============================================================================
 
 @app.post("/ask", response_model=AskResponse)
 def ask_endpoint(request: AskRequest):
     """
     Day 8 Grounded RAG Endpoint for LeniGuide.
-    
-    Features:
-    - Context retrieval with official ASI source re-ranking (asi.nic.in priority).
-    - Structured citations with source, title, page/cave, and date metadata.
-    - Strict out-of-scope guardrail: says 'I don't know' for Q6 (Diwali footfall) & Q15.
+
+    Day 13 production features:
+    - Input length validation and prompt-injection guard.
+    - TTL response cache (300 s) for repeated questions.
+    - Latency / token / cost observability in ``meta`` and structured logs.
     """
+    t0 = start_timer()
+
     user_query = request.get_query_text()
     if not user_query:
         raise HTTPException(
@@ -442,6 +481,27 @@ def ask_endpoint(request: AskRequest):
             detail="Field 'question' or 'query' must be provided and non-empty."
         )
 
+    # --- Security guard ---
+    _guard_query(user_query)
+
+    # --- Cache lookup ---
+    cached = response_cache.get("/ask", user_query)
+    if cached is not None:
+        latency = compute_latency_ms(t0)
+        meta = build_meta(
+            endpoint="/ask",
+            latency_ms=latency,
+            prompt_tokens=0,
+            completion_tokens=0,
+            cache_hit=True,
+        )
+        log_request(**meta, endpoint="/ask")
+        cached_resp = dict(cached)
+        cached_resp["latency_ms"] = latency
+        cached_resp["meta"] = meta
+        return AskResponse(**cached_resp)
+
+    # --- RAG pipeline ---
     response_dict = answer_question(
         question=user_query,
         top_k=request.top_k or 4,
@@ -449,16 +509,36 @@ def ask_endpoint(request: AskRequest):
         site_filter=request.site
     )
 
-    return AskResponse(
-        question=response_dict.get("question", user_query),
-        answer=response_dict.get("answer", "No answer generated."),
-        citations=response_dict.get("citations", []),
-        sources=response_dict.get("sources", response_dict.get("citations", [])),
-        confidence=response_dict.get("confidence", "high"),
-        abstained=response_dict.get("abstained", False),
-        latency_ms=response_dict.get("latency_ms"),
-        config=response_dict.get("config")
+    latency = compute_latency_ms(t0)
+    answer_text = response_dict.get("answer", "")
+    prompt_tokens = estimate_tokens(user_query) + estimate_tokens(answer_text) * 3  # system+context
+    completion_tokens = estimate_tokens(answer_text)
+
+    meta = build_meta(
+        endpoint="/ask",
+        latency_ms=latency,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        cache_hit=False,
     )
+    log_request(**meta, endpoint="/ask")
+
+    result = {
+        "question": response_dict.get("question", user_query),
+        "answer": response_dict.get("answer", "No answer generated."),
+        "citations": response_dict.get("citations", []),
+        "sources": response_dict.get("sources", response_dict.get("citations", [])),
+        "confidence": response_dict.get("confidence", "high"),
+        "abstained": response_dict.get("abstained", False),
+        "latency_ms": latency,
+        "config": response_dict.get("config"),
+        "meta": meta,
+    }
+
+    # Store in cache
+    response_cache.put("/ask", user_query, result)
+
+    return AskResponse(**result)
 
 
 # ============================================================================
@@ -469,19 +549,39 @@ def ask_endpoint(request: AskRequest):
 def agent_endpoint(request: AgentRequest):
     """
     Day 9 Autonomous Agent Endpoint for LeniGuide powered by LangGraph.
-    
-    Features:
-    - ReAct & Tool Execution: Dynamically routes between cave_trip_planner (date math,
-      weekly closing rules, and ticket arithmetic) and rag_search (official heritage records).
-    - Human-in-the-Loop Approval Step: Supports pending_approval preview and teacher confirmation.
-    - Multi-Turn Conversation Memory: Persists messages and intermediate state by thread_id.
+
+    Day 13: adds security guard, cache, and observability instrumentation.
     """
+    t0 = start_timer()
+
     user_query = request.get_query_text()
     if not user_query and request.approved is None:
         raise HTTPException(
             status_code=400,
             detail="Field 'question', 'query', or 'message' must be provided and non-empty."
         )
+
+    # --- Security guard (skip for pure approval turn with no new query) ---
+    if user_query:
+        _guard_query(user_query)
+
+    # --- Cache lookup (only for fresh queries, not approval turns) ---
+    if user_query and request.approved is None:
+        cached = response_cache.get("/agent", user_query)
+        if cached is not None:
+            latency = compute_latency_ms(t0)
+            meta = build_meta(
+                endpoint="/agent",
+                latency_ms=latency,
+                prompt_tokens=0,
+                completion_tokens=0,
+                cache_hit=True,
+            )
+            log_request(**meta, endpoint="/agent")
+            cached_resp = dict(cached)
+            cached_resp["latency_ms"] = latency
+            cached_resp["meta"] = meta
+            return AgentResponse(**cached_resp)
 
     res = run_graph_agent(
         question=user_query,
@@ -490,37 +590,58 @@ def agent_endpoint(request: AgentRequest):
         require_approval=request.require_approval or False
     )
 
-    return AgentResponse(
-        question=res.get("question", user_query),
-        answer=res.get("answer", ""),
-        thread_id=res.get("thread_id", request.thread_id or "default-session"),
-        tools_used=res.get("tools_used", []),
-        approval_status=res.get("approval_status", "not_required"),
-        approved=res.get("approved"),
-        requires_approval=res.get("requires_approval", False),
-        tool_output=res.get("tool_output"),
-        citations=res.get("citations", []),
-        sources=res.get("sources", res.get("citations", [])),
-        steps=res.get("steps", []),
-        abstained=res.get("abstained", False),
-        history_length=res.get("history_length", 0),
-        latency_ms=res.get("latency_ms")
+    latency = compute_latency_ms(t0)
+    answer_text = res.get("answer", "")
+    prompt_tokens = estimate_tokens(user_query or "") + estimate_tokens(answer_text) * 3
+    completion_tokens = estimate_tokens(answer_text)
+
+    meta = build_meta(
+        endpoint="/agent",
+        latency_ms=latency,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        cache_hit=False,
     )
+    log_request(**meta, endpoint="/agent")
+
+    result = {
+        "question": res.get("question", user_query),
+        "answer": res.get("answer", ""),
+        "thread_id": res.get("thread_id", request.thread_id or "default-session"),
+        "tools_used": res.get("tools_used", []),
+        "approval_status": res.get("approval_status", "not_required"),
+        "approved": res.get("approved"),
+        "requires_approval": res.get("requires_approval", False),
+        "tool_output": res.get("tool_output"),
+        "citations": res.get("citations", []),
+        "sources": res.get("sources", res.get("citations", [])),
+        "steps": res.get("steps", []),
+        "abstained": res.get("abstained", False),
+        "history_length": res.get("history_length", 0),
+        "latency_ms": latency,
+        "meta": meta,
+    }
+
+    # Cache fresh query results (not approval turns)
+    if user_query and request.approved is None:
+        response_cache.put("/agent", user_query, result)
+
+    return AgentResponse(**result)
 
 
 # ============================================================================
-# Day 6: GenAI Chat Endpoint (POST /chat)
+# Day 6: GenAI Chat Endpoint (POST /chat) — with security, cache & obs
 # ============================================================================
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """
     Day 6 GenAI Chat Endpoint for LeniGuide.
-    
-    Processes questions with ASI domain rules, retrieves relevant cave context,
-    calls Groq/Gemini with prompt templates, and returns structured JSON with
-    'answer', 'confidence', and 'follow_up'.
+
+    Day 13: adds security guard, cache, and observability instrumentation.
     """
+    t0 = start_timer()
+
     user_query = request.get_prompt_text()
     if not user_query:
         raise HTTPException(
@@ -528,10 +649,29 @@ async def chat_endpoint(request: ChatRequest):
             detail="Field 'question', 'message', or 'query' must be provided and non-empty."
         )
 
+    # --- Security guard ---
+    _guard_query(user_query)
+
+    # --- Cache lookup ---
+    cached = response_cache.get("/chat", user_query)
+    if cached is not None:
+        latency = compute_latency_ms(t0)
+        meta = build_meta(
+            endpoint="/chat",
+            latency_ms=latency,
+            prompt_tokens=0,
+            completion_tokens=0,
+            cache_hit=True,
+        )
+        log_request(**meta, endpoint="/chat")
+        cached_resp = dict(cached)
+        cached_resp["meta"] = meta
+        return ChatResponse(**cached_resp)
+
     # 1. Retrieve top matching cave records via smart search
     matched_records: List[Dict[str, Any]] = []
     source_ids: List[str] = []
-    
+
     if smart_search:
         results = smart_search.search(user_query, top_k=request.top_k or 3)
         matched_records = results
@@ -554,14 +694,33 @@ async def chat_endpoint(request: ChatRequest):
         context_records=matched_records
     )
 
-    # 4. Construct validated response model
-    return ChatResponse(
-        answer=response_data.get("answer", "No answer generated."),
-        confidence=response_data.get("confidence", "high"),
-        follow_up=response_data.get("follow_up", "Can I help with your visit?"),
-        sources=source_ids,
-        task=task_type
+    latency = compute_latency_ms(t0)
+    answer_text = response_data.get("answer", "")
+    prompt_tokens = estimate_tokens(user_query) + estimate_tokens(answer_text) * 3
+    completion_tokens = estimate_tokens(answer_text)
+
+    meta = build_meta(
+        endpoint="/chat",
+        latency_ms=latency,
+        prompt_tokens=prompt_tokens,
+        completion_tokens=completion_tokens,
+        cache_hit=False,
     )
+    log_request(**meta, endpoint="/chat")
+
+    result = {
+        "answer": response_data.get("answer", "No answer generated."),
+        "confidence": response_data.get("confidence", "high"),
+        "follow_up": response_data.get("follow_up", "Can I help with your visit?"),
+        "sources": source_ids,
+        "task": task_type,
+        "meta": meta,
+    }
+
+    # Store in cache
+    response_cache.put("/chat", user_query, result)
+
+    return ChatResponse(**result)
 
 
 # ============================================================================
@@ -772,7 +931,8 @@ async def get_stats():
         "caves_by_religion": religion_counts,
         "vector_chunks_indexed": vector_count,
         "questions_received": len(questions_log),
-        "api_version": "1.3.0"
+        "api_version": "1.5.0",
+        "cache": response_cache.stats(),
     }
 
 
@@ -809,7 +969,7 @@ async def internal_error_handler(request, exc):
 if __name__ == "__main__":
     import uvicorn
     print("=" * 80)
-    print("LENIGUIDE FASTAPI SERVER (DAY 9)")
+    print("LENIGUIDE FASTAPI SERVER (DAY 13)")
     print("Student: Tanmay Subhash Gawali (SJ-52)")
     print("=" * 80)
     print("\nStarting server at http://127.0.0.1:8000")
@@ -817,7 +977,7 @@ if __name__ == "__main__":
     print("RAG Endpoint: POST http://127.0.0.1:8000/ask")
     print("Agent Endpoint: POST http://127.0.0.1:8000/agent")
     print("=" * 80)
-    
+
     uvicorn.run(
         "app.main:app",
         host="127.0.0.1",

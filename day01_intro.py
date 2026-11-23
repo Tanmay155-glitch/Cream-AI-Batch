@@ -1,44 +1,35 @@
-"""
-Day 1 - Introduction to LeniGuide
-Displays project information and interacts with the user.
-"""
+# Day 1: Project Introduction Script
+# Student: Tanmay Subhash Gawali (SJ-52)
+# Project: LeniGuide
 
-# Project information
+# Project Card details stored in variables
 project_id = "SJ-52"
-student_name = "Tanmay Subhash Gawali"
-reg_no = "2124UMLM2016"
-product_name = "LeniGuide"
-product_desc = "A cave-by-cave guide to Ajanta and Ellora UNESCO World Heritage Sites"
-target_user = "School history teacher planning study tours for Class 9 students"
+project_name = "LeniGuide"
+student_name = "Tanmay Gawali"
+theme = "Travel & Culture"
 
-# Display project card
-print("=" * 70)
-print(f"PROJECT: {product_name}")
-print("=" * 70)
-print(f"Project ID: {project_id}")
-print(f"Student: {student_name} ({reg_no})")
-print(f"Course: Sanjivani AI Training - 15 Days Course")
-print(f"Theme: Travel & Culture")
-print()
-print(f"Product: {product_desc}")
-print(f"Target User: {target_user}")
-print()
-print("Data Sources:")
-print("  - ASI Ajanta: https://asi.nic.in/pages/WorldHeritageAjantaCaves")
-print("  - ASI Ellora: https://asi.nic.in/pages/WorldHeritageElloraCaves")
-print()
-print("⚠️  SAFETY NOTE: Timings, fees and closures can change.")
-print("   Confirm on asi.nic.in before you travel.")
-print("=" * 70)
-print()
+user_persona = "History teacher planning a 2-day school trip for 40 students"
+problem = "Conflicting fees and wrong timings online; need verified cave details"
+data_source = "ASI official website (asi.nic.in)"
 
-# Interactive section
-user_name = input("What is your name? ")
-print(f"\nHello, {user_name}! Welcome to LeniGuide.")
-print()
+# Printing the project card using f-strings
+print("=" * 50)
+print(f"Project Name : {project_name}")
+print(f"Project ID   : {project_id} ({theme})")
+print(f"Created by   : {student_name}")
+print("=" * 50)
+print(f"Target User  : {user_persona}")
+print(f"Problem Solved: {problem}")
+print(f"Data Source  : {data_source}")
+print("=" * 50)
 
-user_question = input("What would you like to know about Ajanta or Ellora caves? ")
-print()
-print(f"You asked: \"{user_question}\"")
-print(f"\n{user_name}, LeniGuide will help you find answers from official ASI sources.")
-print("This system is under development. Stay tuned!")
+# Taking input from the user
+user_name = input("Enter your name: ")
+user_question = input(f"Hi {user_name}, what do you want to ask about Ajanta or Ellora? ")
+
+# Simple output response
+print("\n" + "-" * 50)
+print(f"Hello {user_name}!")
+print(f"Your question was: '{user_question}'")
+print(f"LeniGuide is setting up to answer cave-wise queries soon.")
+print("-" * 50)
