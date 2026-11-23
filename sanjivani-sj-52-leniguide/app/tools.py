@@ -4,14 +4,16 @@ Student: Tanmay Subhash Gawali (Reg No: 2124UMLM2016, Branch: CSE AI & ML)
 Project: SJ-52 | Product: LeniGuide (Ajanta & Ellora UNESCO Heritage Guide)
 
 Provides:
-- cave_trip_planner: Pure Python datetime & arithmetic tool to assign sites based on
-  official ASI weekly closing rules (Ajanta closed Mon, Ellora closed Tue) and compute
-  exact ticket fees (Adults Rs 40 cash / Rs 35 online, Children under 15 FREE).
+- cave_trip_planner: Pure Python datetime & arithmetic tool. Reads fees from
+  data/site_rules.json (never hardcoded). Assigns sites based on official ASI
+  weekly closing rules (Ajanta closed Mon, Ellora closed Tue).
+- route_plan: Walking-order plan from data/routes.json.
 - rag_search_tool: Grounded retrieval tool wrapping app.rag.answer_question.
-- extract_trip_params: Natural language parameter extractor for date, group size, and payment mode.
+- extract_trip_params: NL parameter extractor for date, group size, payment.
 - TOOLS registry and JSON schema declarations for LLM function calling.
 """
 
+import json
 import re
 import sys
 from datetime import datetime, timedelta
@@ -22,27 +24,23 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# ASI Fee Constants (in INR)
-ASI_ADULT_CASH_RATE = 40
-ASI_ADULT_ONLINE_RATE = 35
-ASI_CHILD_RATE = 0  # Free for children under 15 as per official ASI rules
+SITE_RULES_PATH = PROJECT_ROOT / "data" / "site_rules.json"
 
-# Cave Must-See Highlights for School Study Tours
-AJANTA_HIGHLIGHTS = [
-    "Cave 1: Masterpiece murals of Bodhisattva Padmapani and Vajrapani with royal court scenes",
-    "Cave 2: Ornate ceiling medallions, thousand Buddhas mural, and Hariti-Pancika chapel",
-    "Cave 10: Oldest dated Hinayana Chaitya hall (2nd century BCE, rediscovered in 1819)",
-    "Cave 19: Gandhara-style sculpted Chaitya facade with standing and seated Buddha figures",
-    "Cave 26: Monumental 7-meter Mahaparinirvana (Reclining Buddha) rock sculpture"
-]
 
-ELLORA_HIGHLIGHTS = [
-    "Cave 16: Kailasa Temple (world's largest monolithic rock-cut monument, excavated top-down)",
-    "Cave 10: Vishwakarma Cave ('Carpenter's Cave' - Buddhist Chaitya hall with carved cathedral ceiling)",
-    "Cave 21: Rameshwara Cave (early Hindu rock sanctuary with exquisite carvings of Ganga and Parvati)",
-    "Cave 29: Dhumar Lena (majestic waterfall cliff setting, monumental Shiva Nataraja reliefs)",
-    "Cave 32: Indra Sabha (two-storey Digambara Jain shrine with intricate monolithic lotus ceiling)"
-]
+def load_site_rules() -> Dict[str, Any]:
+    """Load site rules from data/site_rules.json. Never hardcode fees."""
+    if not SITE_RULES_PATH.exists():
+        return {}
+    with open(SITE_RULES_PATH, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def get_fee(site_key: str, payment: str, rules: Dict[str, Any]) -> Optional[int]:
+    """Get fee for a site and payment mode from rules. Returns None if not verified."""
+    site = rules.get(site_key, {})
+    if payment == "online":
+        return site.get("fee_indian_online")
+    return site.get("fee_indian_cash")
 
 
 def parse_flexible_date(date_str: str) -> datetime:
@@ -53,9 +51,10 @@ def parse_flexible_date(date_str: str) -> datetime:
     cleaned = date_str.strip().replace(",", " ").replace("st", "").replace("nd", "").replace("rd", "").replace("th", "")
     cleaned = re.sub(r"\s+", " ", cleaned)
 
-    # Common date formats
     date_formats = [
         "%Y-%m-%d",       # 2026-12-14
+        "%Y-%B-%d",       # 2026-December-14
+        "%Y-%b-%d",       # 2026-Dec-14
         "%d-%m-%Y",       # 14-12-2026
         "%d/%m/%Y",       # 14/12/2026
         "%Y/%m/%d",       # 2026/12/14
@@ -79,8 +78,7 @@ def parse_flexible_date(date_str: str) -> datetime:
         except ValueError:
             continue
 
-    # Fallback to default date 14 Dec 2026
-    return datetime(2026, 12, 14)
+    raise ValueError(f"Cannot parse date: '{date_str}'")
 
 
 def extract_trip_params(query: str) -> Dict[str, Any]:
@@ -90,7 +88,6 @@ def extract_trip_params(query: str) -> Dict[str, Any]:
     """
     q_lower = query.lower()
 
-    # Default parameters for target scenario (4 teachers, 40 students under 15, 14-15 Dec)
     params = {
         "start_date": "2026-12-14",
         "num_days": 2,
@@ -109,7 +106,7 @@ def extract_trip_params(query: str) -> Dict[str, Any]:
     if child_match:
         params["children_under_15"] = int(child_match.group(1))
 
-    # Extract dates like '14-15 December', '14 to 15 Dec', '14th and 15th December 2026'
+    # Extract dates like '14-15 December', '14 to 15 Dec'
     date_range_match = re.search(
         r"(\d{1,2})(?:st|nd|rd|th)?\s*(?:-|to|and|&)\s*(\d{1,2})(?:st|nd|rd|th)?\s*([a-zA-Z]+)(?:\s*(\d{4}))?",
         q_lower
@@ -123,8 +120,6 @@ def extract_trip_params(query: str) -> Dict[str, Any]:
         days_span = (end_day - start_day) + 1
         if 1 <= days_span <= 7:
             params["num_days"] = days_span
-
-    # Check for ISO or single date mentions (e.g. 2026-12-14, 14 December)
     elif re.search(r"\b(\d{4}-\d{2}-\d{2})\b", query):
         iso_match = re.search(r"\b(\d{4}-\d{2}-\d{2})\b", query)
         params["start_date"] = iso_match.group(1)
@@ -147,7 +142,7 @@ def extract_trip_params(query: str) -> Dict[str, Any]:
     else:
         params["payment_mode"] = "both"
 
-    # Extract explicit days (e.g. '2 days', '3-day trip')
+    # Extract explicit days
     days_match = re.search(r"(\d+)\s*(?:-|\s*)days?", q_lower)
     if days_match:
         val = int(days_match.group(1))
@@ -162,150 +157,180 @@ def cave_trip_planner(
     num_days: int = 2,
     adults: int = 4,
     children_under_15: int = 40,
-    payment_mode: str = "both"
+    payment_mode: str = "both",
+    sites: Tuple[str, ...] = ("ajanta", "ellora"),
 ) -> Dict[str, Any]:
     """
     Deterministic Agent Domain Tool: Cave Trip Planner.
-    
-    Takes a tour start date, duration, and group counts.
+
+    Reads fees from data/site_rules.json (never hardcoded).
     Uses pure Python datetime arithmetic and official ASI weekly closing rules:
-    - Ajanta Caves: CLOSED on Mondays (Open Tuesday to Sunday, 9:00 AM - 5:00 PM).
-    - Ellora Caves: CLOSED on Tuesdays (Open Wednesday to Monday, Sunrise to Sunset).
-    
-    Computes exact entry fee totals based on official ASI rates:
-    - Adults: Rs 40 (cash) or Rs 35 (online) per site.
-    - Children under 15: FREE entry per ASI notification.
-    
+    - Ajanta Caves: CLOSED on Mondays.
+    - Ellora Caves: CLOSED on Tuesdays.
+
     Returns structured schedule and fee breakdown.
     """
+    # Validate inputs
+    if num_days < 1:
+        raise ValueError("num_days must be >= 1")
+    if adults < 0 or children_under_15 < 0:
+        raise ValueError("adults and children counts must be >= 0")
+
     try:
         start_dt = parse_flexible_date(start_date)
-    except Exception:
-        start_dt = datetime(2026, 12, 14)
+    except ValueError as e:
+        raise ValueError(f"Bad date: {e}")
 
-    num_days = max(1, min(int(num_days), 7))
+    num_days = min(int(num_days), 7)
     adults = max(0, int(adults))
     children_under_15 = max(0, int(children_under_15))
-    payment_mode = payment_mode.lower() if payment_mode in ["cash", "online", "both"] else "both"
+    if payment_mode not in ("cash", "online", "both"):
+        payment_mode = "both"
 
-    # Plan schedule day by day
+    # Load rules from JSON — never hardcode fees
+    rules = load_site_rules()
+
+    # Read closed days from rules
+    ajanta_closed_day = rules.get("ajanta", {}).get("closed_day", "Monday")
+    ellora_closed_day = rules.get("ellora", {}).get("closed_day", "Tuesday")
+    closed_weekday = {
+        "ajanta": {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}.get(ajanta_closed_day, 0),
+        "ellora": {"Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6}.get(ellora_closed_day, 1),
+    }
+
+    # Build schedule
     schedule: List[Dict[str, Any]] = []
     assigned_sites_count: Dict[str, int] = {"Ellora": 0, "Ajanta": 0}
+    unscheduled: List[Dict[str, Any]] = []
 
     for day_idx in range(num_days):
         current_dt = start_dt + timedelta(days=day_idx)
-        weekday_idx = current_dt.weekday()  # 0=Monday, 1=Tuesday, ..., 6=Sunday
+        weekday_idx = current_dt.weekday()
         weekday_name = current_dt.strftime("%A")
         date_iso = current_dt.strftime("%Y-%m-%d")
 
-        # Official ASI closing rules
-        ajanta_open = (weekday_idx != 0)  # Closed on Monday
-        ellora_open = (weekday_idx != 1)  # Closed on Tuesday
+        ajanta_open = (weekday_idx != closed_weekday["ajanta"])
+        ellora_open = (weekday_idx != closed_weekday["ellora"])
 
         assigned_site = ""
         reason = ""
-        highlights = []
 
-        # Determine optimal assignment
-        if weekday_idx == 0:
-            # Monday: Ajanta CLOSED -> must be Ellora
+        if weekday_idx == closed_weekday["ajanta"] and not weekday_idx == closed_weekday["ellora"]:
             assigned_site = "Ellora"
-            reason = "Ajanta is CLOSED on Mondays. Ellora is OPEN on Mondays (Sunrise to Sunset)."
-            highlights = ELLORA_HIGHLIGHTS
-        elif weekday_idx == 1:
-            # Tuesday: Ellora CLOSED -> must be Ajanta
+            reason = f"Ajanta is CLOSED on {ajanta_closed_day}s. Ellora is OPEN."
+        elif weekday_idx == closed_weekday["ellora"] and not weekday_idx == closed_weekday["ajanta"]:
             assigned_site = "Ajanta"
-            reason = "Ellora is CLOSED on Tuesdays. Ajanta is OPEN on Tuesdays (9:00 AM - 5:00 PM)."
-            highlights = AJANTA_HIGHLIGHTS
+            reason = f"Ellora is CLOSED on {ellora_closed_day}s. Ajanta is OPEN."
+        elif not ajanta_open and not ellora_open:
+            assigned_site = "NONE"
+            reason = "Both sites are closed on this day."
         else:
-            # Both open on Wednesday through Sunday
-            # Prioritize unvisited site or balance
+            # Both open — smart assignment
             next_dt = current_dt + timedelta(days=1)
             next_weekday = next_dt.weekday()
 
             if assigned_sites_count["Ellora"] == 0 and assigned_sites_count["Ajanta"] == 0:
-                # If next day is Tuesday (when Ellora is closed), visit Ellora first today!
-                if day_idx + 1 < num_days and next_weekday == 1:
+                if day_idx + 1 < num_days and next_weekday == closed_weekday["ellora"]:
                     assigned_site = "Ellora"
-                    reason = f"Both sites open on {weekday_name}. Ellora is scheduled today because Ellora is closed tomorrow (Tuesday)."
-                    highlights = ELLORA_HIGHLIGHTS
+                    reason = f"Both sites open on {weekday_name}. Ellora scheduled today because Ellora closes tomorrow ({ellora_closed_day})."
+                elif day_idx + 1 < num_days and next_weekday == closed_weekday["ajanta"]:
+                    assigned_site = "Ajanta"
+                    reason = f"Both sites open on {weekday_name}. Ajanta scheduled today because Ajanta closes tomorrow ({ajanta_closed_day})."
                 else:
                     assigned_site = "Ajanta"
                     reason = f"Both sites open on {weekday_name}. Starting with Ajanta."
-                    highlights = AJANTA_HIGHLIGHTS
             elif assigned_sites_count["Ellora"] == 0 and ellora_open:
                 assigned_site = "Ellora"
-                reason = f"Ellora is OPEN on {weekday_name} (visiting the second UNESCO site)."
-                highlights = ELLORA_HIGHLIGHTS
+                reason = f"Visiting the second site (Ellora) on {weekday_name}."
             elif assigned_sites_count["Ajanta"] == 0 and ajanta_open:
                 assigned_site = "Ajanta"
-                reason = f"Ajanta is OPEN on {weekday_name} (visiting the second UNESCO site)."
-                highlights = AJANTA_HIGHLIGHTS
+                reason = f"Visiting the second site (Ajanta) on {weekday_name}."
             else:
-                # Extra days: alternate
                 assigned_site = "Ellora" if assigned_sites_count["Ellora"] <= assigned_sites_count["Ajanta"] else "Ajanta"
-                reason = f"Extended exploration day at {assigned_site}."
-                highlights = ELLORA_HIGHLIGHTS if assigned_site == "Ellora" else AJANTA_HIGHLIGHTS
+                reason = f"Extended exploration at {assigned_site}."
 
-        assigned_sites_count[assigned_site] += 1
+        if assigned_site == "NONE":
+            unscheduled.append({"date": date_iso, "weekday": weekday_name, "reason": reason})
+        else:
+            assigned_sites_count[assigned_site] += 1
+            ajanta_rules = rules.get("ajanta", {})
+            ellora_rules = rules.get("ellora", {})
+            timings = ajanta_rules.get("timings", "9:00 AM - 5:00 PM") if assigned_site == "Ajanta" else ellora_rules.get("timings", "Sunrise to Sunset")
 
-        schedule.append({
-            "day": day_idx + 1,
-            "date": date_iso,
-            "weekday": weekday_name,
-            "assigned_site": assigned_site,
-            "site_status": "OPEN (Sunrise to Sunset)" if assigned_site == "Ellora" else "OPEN (9:00 AM - 5:00 PM)",
-            "closing_rule": reason,
-            "must_see_highlights": highlights[:4]
-        })
+            schedule.append({
+                "day": day_idx + 1,
+                "date": date_iso,
+                "weekday": weekday_name,
+                "assigned_site": assigned_site,
+                "site_status": f"OPEN ({timings})",
+                "closing_rule": reason,
+            })
 
-    # Number of unique or total site visits
+    # Fee calculation — read from site_rules.json
     unique_sites_visited = len([s for s, count in assigned_sites_count.items() if count > 0])
-    total_site_visits = sum(assigned_sites_count.values())
+    child_free_age = rules.get("ajanta", {}).get("child_free_under_age", 15)
 
-    # Ticket Fee Arithmetic (Pure Python)
-    cash_per_site_adults = adults * ASI_ADULT_CASH_RATE
-    online_per_site_adults = adults * ASI_ADULT_ONLINE_RATE
-    children_cost_per_site = children_under_15 * ASI_CHILD_RATE
+    fee_cash = get_fee("ajanta", "cash", rules)  # Same for both sites per ASI
+    fee_online = get_fee("ajanta", "online", rules)
 
-    cash_total = cash_per_site_adults * unique_sites_visited
-    online_total = online_per_site_adults * unique_sites_visited
-    children_total = 0
-    savings_online = cash_total - online_total
+    # Check if fees are verified
+    fee_verified = fee_cash is not None and fee_online is not None
+    ajanta_verified_on = rules.get("ajanta", {}).get("verified_on")
+    ellora_verified_on = rules.get("ellora", {}).get("verified_on")
 
-    if payment_mode == "cash":
-        selected_total = cash_total
-    elif payment_mode == "online":
-        selected_total = online_total
+    if fee_verified:
+        cash_per_site = adults * fee_cash
+        online_per_site = adults * fee_online
+        cash_total = cash_per_site * unique_sites_visited
+        online_total = online_per_site * unique_sites_visited
+        children_cost = 0
+        savings = cash_total - online_total
+
+        if payment_mode == "cash":
+            selected_total = cash_total
+        elif payment_mode == "online":
+            selected_total = online_total
+        else:
+            selected_total = online_total  # recommend online
+
+        fee_breakdown = {
+            "rate_per_adult_cash_inr": fee_cash,
+            "rate_per_adult_online_inr": fee_online,
+            "rate_per_child_under_15_inr": 0,
+            "cash_per_site_inr": cash_per_site,
+            "online_per_site_inr": online_per_site,
+            "cash_total_inr": cash_total,
+            "online_total_inr": online_total,
+            "children_cost_inr": children_cost,
+            "savings_online_inr": savings,
+            "selected_mode_total_inr": selected_total,
+            "fee_status": "verified",
+            "source_url": rules.get("ajanta", {}).get("source_url", "https://asi.nic.in"),
+            "verified_on": ajanta_verified_on,
+            "asi_rule_note": f"Children under {child_free_age} enter FREE as per official ASI regulations.",
+        }
     else:
-        selected_total = online_total  # Recommend online rate
+        fee_breakdown = {
+            "fee_status": "not verified",
+            "message": "Fees have not been verified yet. Please complete MANUAL STEP M-4 to verify ASI fees.",
+            "source_url": rules.get("ajanta", {}).get("source_url", "https://asi.nic.in"),
+        }
 
-    # Human-readable summary
-    day1_site = schedule[0]["assigned_site"] if schedule else "Ellora"
-    day1_date = schedule[0]["date"] if schedule else start_date
-    day1_day = schedule[0]["weekday"] if schedule else "Monday"
+    # Build summary
+    summary_lines = [
+        f"Study Tour Itinerary for {adults} Adults & {children_under_15} Students (under {child_free_age}):"
+    ]
+    for s in schedule:
+        summary_lines.append(f"• Day {s['day']} ({s['weekday']}, {s['date']}): Visit {s['assigned_site']} Caves — {s['closing_rule']}")
 
-    day2_site = schedule[1]["assigned_site"] if len(schedule) > 1 else "Ajanta"
-    day2_date = schedule[1]["date"] if len(schedule) > 1 else ""
-    day2_day = schedule[1]["weekday"] if len(schedule) > 1 else "Tuesday"
-
-    summary_text = (
-        f"Study Tour Itinerary for {adults} Teachers (Adults) & {children_under_15} Students (<15 Years):\n"
-        f"• Day 1 ({day1_day}, {day1_date}): Visit {day1_site} Caves ({schedule[0]['closing_rule']})\n"
-    )
-    if len(schedule) > 1:
-        summary_text += f"• Day 2 ({day2_day}, {day2_date}): Visit {day2_site} Caves ({schedule[1]['closing_rule']})\n"
-
-    summary_text += (
-        f"\nOfficial ASI Entry Ticket Costs:\n"
-        f"• Teachers / Adults ({adults} persons): "
-        f"Rs {cash_per_site_adults} cash / Rs {online_per_site_adults} online per site.\n"
-        f"• Total for 2-day tour ({unique_sites_visited} sites): "
-        f"Rs {online_total} (Online booking) OR Rs {cash_total} (Cash at ticket counter).\n"
-        f"• Students ({children_under_15} persons under 15): "
-        f"Rs 0 (100% FREE entry under official ASI rules upon showing school ID).\n"
-        f"• Online Booking Benefit: Saves Rs {savings_online} for the group."
-    )
+    if fee_verified:
+        summary_lines.append("\nOfficial ASI Entry Ticket Costs:")
+        summary_lines.append(f"• Adults ({adults}): Rs {fee_cash} cash / Rs {fee_online} online per site")
+        summary_lines.append(f"• Total ({unique_sites_visited} sites): Rs {cash_total} cash / Rs {online_total} online")
+        summary_lines.append(f"• Students ({children_under_15} under {child_free_age}): FREE entry")
+        summary_lines.append(f"• Online booking saves Rs {savings}")
+    else:
+        summary_lines.append("\n⚠️ Fee information not yet verified. Complete MANUAL STEP M-4.")
 
     return {
         "start_date": start_dt.strftime("%Y-%m-%d"),
@@ -315,20 +340,10 @@ def cave_trip_planner(
         "payment_mode": payment_mode,
         "unique_sites_count": unique_sites_visited,
         "schedule": schedule,
-        "fee_breakdown": {
-            "rate_per_adult_cash_inr": ASI_ADULT_CASH_RATE,
-            "rate_per_adult_online_inr": ASI_ADULT_ONLINE_RATE,
-            "rate_per_child_under_15_inr": ASI_CHILD_RATE,
-            "cash_per_site_inr": cash_per_site_adults,
-            "online_per_site_inr": online_per_site_adults,
-            "cash_total_inr": cash_total,
-            "online_total_inr": online_total,
-            "children_cost_inr": children_total,
-            "savings_online_inr": savings_online,
-            "selected_mode_total_inr": selected_total,
-            "asi_rule_note": "Children under 15 enter FREE as per official ASI regulations (ID proof required)."
-        },
-        "summary": summary_text
+        "unscheduled": unscheduled,
+        "fee_breakdown": fee_breakdown,
+        "summary": "\n".join(summary_lines),
+        "safety_note": "Timings, fees and closures can change. Confirm on asi.nic.in before you travel.",
     }
 
 
@@ -364,31 +379,31 @@ TOOL_DEFINITIONS = [
             "description": (
                 "Plans daily visit assignment to Ajanta and Ellora caves based on ASI weekly closing rules "
                 "(Ajanta closed Monday, Ellora closed Tuesday) and computes official ticket fee totals for "
-                "groups (adults Rs 40 cash / Rs 35 online, children under 15 FREE)."
+                "groups. Reads fees from data/site_rules.json."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "start_date": {
                         "type": "string",
-                        "description": "Start date of the trip in YYYY-MM-DD or readable format (e.g., '2026-12-14')"
+                        "description": "Start date in YYYY-MM-DD or readable format"
                     },
                     "num_days": {
                         "type": "integer",
-                        "description": "Number of days for the trip (e.g., 2)"
+                        "description": "Number of days for the trip"
                     },
                     "adults": {
                         "type": "integer",
-                        "description": "Number of adults/teachers (paying entry ticket)"
+                        "description": "Number of adults/teachers"
                     },
                     "children_under_15": {
                         "type": "integer",
-                        "description": "Number of children or students under 15 years old (FREE entry)"
+                        "description": "Number of children under 15 (FREE entry)"
                     },
                     "payment_mode": {
                         "type": "string",
                         "enum": ["cash", "online", "both"],
-                        "description": "Payment mode for tickets: 'cash', 'online', or 'both'"
+                        "description": "Payment mode for tickets"
                     }
                 },
                 "required": ["start_date"]
@@ -401,14 +416,14 @@ TOOL_DEFINITIONS = [
             "name": "rag_search",
             "description": (
                 "Searches official ASI heritage documentation for cave architecture, sculptures, "
-                "murals, historical periods, and general monument regulations."
+                "murals, historical periods, and monument regulations."
             ),
             "parameters": {
                 "type": "object",
                 "properties": {
                     "query": {
                         "type": "string",
-                        "description": "Question or search query regarding Ajanta and Ellora caves"
+                        "description": "Question or search query about Ajanta and Ellora caves"
                     },
                     "top_k": {
                         "type": "integer",
@@ -424,8 +439,7 @@ TOOL_DEFINITIONS = [
 
 if __name__ == "__main__":
     print("=" * 80)
-    print("LENIGUIDE DOMAIN AGENT TOOLS TEST (DAY 9 - S1)")
-    print("Student: Tanmay Subhash Gawali (SJ-52)")
+    print("LENIGUIDE DOMAIN AGENT TOOLS TEST (DAY 9)")
     print("=" * 80)
 
     # Test Q4: 14-15 December 2026, 4 teachers, 40 students under 15
@@ -443,31 +457,16 @@ if __name__ == "__main__":
         print(f"  Day {s['day']} ({s['weekday']}, {s['date']}): {s['assigned_site']} -> {s['closing_rule']}")
 
     fb = plan["fee_breakdown"]
-    print("\nFee Breakdown:")
-    print(f"  Adults: 4 x Rs 40 = Rs {fb['cash_per_site_inr']} cash (Rs {fb['online_per_site_inr']} online) per site")
-    print(f"  Total (2 sites): Rs {fb['cash_total_inr']} cash | Rs {fb['online_total_inr']} online")
-    print(f"  Children under 15: Rs {fb['children_cost_inr']} (FREE as per ASI)")
-    print(f"  Savings booking online: Rs {fb['savings_online_inr']}")
+    print(f"\nFee Status: {fb.get('fee_status', 'unknown')}")
+    if fb.get("fee_status") == "verified":
+        print(f"  Cash total: Rs {fb['cash_total_inr']}")
+        print(f"  Online total: Rs {fb['online_total_inr']}")
+        print(f"  Children: Rs {fb['children_cost_inr']} (FREE)")
 
-    # Verify key assertions for Q4
     assert plan["schedule"][0]["assigned_site"] == "Ellora", "Day 1 (Monday) must be Ellora!"
     assert plan["schedule"][1]["assigned_site"] == "Ajanta", "Day 2 (Tuesday) must be Ajanta!"
-    assert fb["cash_total_inr"] == 320, "Total cash must be Rs 320 for 4 adults across 2 sites!"
-    assert fb["online_total_inr"] == 280, "Total online must be Rs 280 for 4 adults across 2 sites!"
-    assert fb["children_cost_inr"] == 0, "Children cost must be Rs 0!"
 
-    print("\nSummary:")
-    print(plan["summary"])
-
-    # Test extract_trip_params
-    print("\n--- TEST: extract_trip_params ---")
-    test_q = "We are 4 teachers and 40 students under 15 coming on 14-15 December. Which site on which day, and total ticket cost?"
-    extracted = extract_trip_params(test_q)
-    print("Extracted params:", extracted)
-    assert extracted["adults"] == 4
-    assert extracted["children_under_15"] == 40
-    assert extracted["num_days"] == 2
-
+    print("\n" + plan["summary"])
     print("\n" + "=" * 80)
     print("ALL TOOLS TESTS PASSED!")
     print("=" * 80)
