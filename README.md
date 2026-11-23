@@ -1,31 +1,50 @@
-# LeniGuide · Ajanta & Ellora Cave-by-Cave Companion
-
-[![LeniGuide CI](https://github.com/Tanmay155-glitch/Cream-AI-Batch/actions/workflows/ci.yml/badge.svg)](https://github.com/Tanmay155-glitch/Cream-AI-Batch/actions/workflows/ci.yml)
+# LeniGuide — Ajanta & Ellora Cave-by-Cave Guide
 
 **Project ID:** SJ-52  
 **Student:** Tanmay Subhash Gawali (2124UMLM2016)  
-**Branch:** CSE (AI and ML), Sanjivani College of Engineering, Kopargaon  
-**Theme:** Travel & Culture  
+**Course:** Sanjivani AI Training - 15 Days Course  
+**Theme:** Travel & Culture
 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+## Product
 
-## 1. Product Overview
-**LeniGuide** is an intelligent cave-by-cave guide for the UNESCO World Heritage rock-cut cave complexes of **Ajanta** and **Ellora** in Chhatrapati Sambhajinagar (Aurangabad) district, Maharashtra. It provides accurate architectural highlights, historical contexts, ASI-verified entry fees, opening hours, and automated day-by-day tour planning.
+LeniGuide is a cave-by-cave guide to the UNESCO World Heritage Sites of Ajanta and Ellora. It helps visitors plan their trips by providing:
+- What to see in each cave (highlights, art, architecture)
+- Correct ASI timings, fees, and closed days
+- Day-by-day itinerary planning for multi-site visits
 
-## 2. Target User Persona
-A school history teacher from Kopargaon planning a 2-day educational excursion to Ajanta and Ellora for 40 Class 9 students, requiring an optimized "must-see" route, schedule, and cost breakdown.
+## Target User
 
-## 3. Core Challenge & Technical Story
-Many third-party travel websites show outdated entry fees (₹10 to ₹30) and inaccurate weekly holiday schedules. LeniGuide resolves source conflicts by prioritizing official Archaeological Survey of India (ASI) records, strictly enforcing weekly closing schedules (Ajanta closed on Mondays; Ellora closed on Tuesdays), and verifying ticket rules (children under 15 enter free).
+A school history teacher from Kopargaon planning a 2-day study tour to Ajanta and Ellora for 40 Class 9 students, needing a cave-wise "must see" plan with logistics (which site on which day, ticket costs, time allocation).
 
-## 4. Official Data Sources
-- [ASI Ajanta Caves Official Portal](https://asi.nic.in/pages/WorldHeritageAjantaCaves)
-- [ASI Ellora Caves Official Portal](https://asi.nic.in/pages/WorldHeritageElloraCaves)
+## Problem Solved
 
-## 5. Completed & Planned Capabilities
-- **Day 2:** 20 verified cave records covering Buddhist, Hindu, and Jain monuments.
-- **Day 4:** FastAPI microservice with fuzzy & semantic record lookups.
-- **Day 9:** `cave_trip_planner` tool scheduling days around ASI weekly closures and computing group tickets.
-- **Day 10:** Streamlit interactive UI featuring a "Must-See Route Strip".
-- **Day 11:** Production Docker container, docker-compose multi-service orchestration, and full test suite.
-- **Day 12:** GitHub Actions CI (`ruff`, `pytest`, `docker build`), merged feature PR, and live deployment on Render ([https://leniguide-sj-52.onrender.com/health](https://leniguide-sj-52.onrender.com/health)).
+Planning a heritage site visit requires:
+1. Knowing which caves are most important for educational value
+2. Understanding site rules (Ajanta closed Monday, Ellora closed Tuesday)
+3. Accurate current fees and timings (not outdated blog posts)
+4. Allocating limited time across dozens of caves
+
+LeniGuide answers questions from verified official sources (ASI) and plans feasible itineraries.
+
+## Data Sources
+
+- **ASI Ajanta:** https://asi.nic.in/pages/WorldHeritageAjantaCaves
+- **ASI Ellora:** https://asi.nic.in/pages/WorldHeritageElloraCaves
+- Wikipedia cave lists for reference (cross-checking cave numbers, periods, religions)
+
+## Test Questions
+
+1. Which day is Ellora closed? And Ajanta?
+2. What is special about the Kailasa temple in Ellora cave 16?
+3. Which caves in Ajanta have the best paintings?
+4. We are 4 teachers and 40 students under 15 coming on 14–15 December. Which site on which day, and total ticket cost?
+5. Make a 3-hour plan for Ellora covering Buddhist, Hindu and Jain caves
+6. How many tourists visited Ajanta caves last Diwali?
+
+## Safety Note
+
+⚠️ **Timings, fees and closures can change. Confirm on asi.nic.in before you travel.**
+
+---
+
+*Built as part of Sanjivani AI Training 15-day project track.*
