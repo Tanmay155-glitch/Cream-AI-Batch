@@ -1,0 +1,34 @@
+{
+  "ajanta": {
+    "site": "Ajanta Caves",
+    "adult_cash_fee": 40,
+    "adult_online_fee": 35,
+    "child_under_15_rule": "FREE entry for children under 15 years",
+    "child_free_under_age": 15,
+    "weekly_closing_day": "Monday",
+    "opening_hours": "9:00 AM to 5:00 PM",
+    "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
+    "source_date": "2026-11-07",
+    "authority_rank": 1,
+    "source_type": "official"
+  },
+  "ellora": {
+    "site": "Ellora Caves",
+    "adult_cash_fee": 40,
+    "adult_online_fee": 35,
+    "child_under_15_rule": "FREE entry for children under 15 years",
+    "child_free_under_age": 15,
+    "weekly_closing_day": "Tuesday",
+    "opening_hours": "Sunrise to Sunset (approximately 6:00 AM to 6:00 PM)",
+    "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
+    "source_date": "2026-11-07",
+    "authority_rank": 1,
+    "source_type": "official"
+  },
+  "metadata": {
+    "verified_from": "Fetched ASI pages (data/raw/ajanta_asi.html, data/raw/ellora_asi.html)",
+    "verified_date": "2026-11-07",
+    "currency": "INR",
+    "status": "VERIFIED"
+  }
+}

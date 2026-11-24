@@ -200,6 +200,9 @@ def _record_to_chunks(
         "site": site,
         "cave_no": cave_no,
         "is_official_asi": is_official,
+        "source_type": record.get("source_type", "official" if is_official else "wikipedia"),
+        "authority_rank": record.get("authority_rank", 1 if is_official else 2),
+        "source_date": record.get("source_date", "2026-11"),
     }
 
     return chunk_text(
@@ -249,6 +252,9 @@ def _build_asi_rules_chunks(
             "site": "Both",
             "cave_no": "all",
             "is_official_asi": True,
+            "source_type": "official",
+            "authority_rank": 1,
+            "source_date": "2026-11",
         },
         chunk_id_prefix="asi-rules-closures",
     ))
@@ -279,6 +285,9 @@ def _build_asi_rules_chunks(
             "site": "Both",
             "cave_no": "all",
             "is_official_asi": True,
+            "source_type": "official",
+            "authority_rank": 1,
+            "source_date": "2026-11",
         },
         chunk_id_prefix="asi-rules-fees",
     ))

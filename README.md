@@ -1,5 +1,7 @@
 # LeniGuide · Ajanta & Ellora Cave-by-Cave Companion
 
+[![LeniGuide CI](https://github.com/Tanmay155-glitch/Cream-AI-Batch/actions/workflows/ci.yml/badge.svg)](https://github.com/Tanmay155-glitch/Cream-AI-Batch/actions/workflows/ci.yml)
+
 **Project ID:** SJ-52  
 **Student:** Tanmay Subhash Gawali (2124UMLM2016)  
 **Branch:** CSE (AI and ML), Sanjivani College of Engineering, Kopargaon  
@@ -20,8 +22,10 @@ Many third-party travel websites show outdated entry fees (₹10 to ₹30) and i
 - [ASI Ajanta Caves Official Portal](https://asi.nic.in/pages/WorldHeritageAjantaCaves)
 - [ASI Ellora Caves Official Portal](https://asi.nic.in/pages/WorldHeritageElloraCaves)
 
-## 5. Planned Capabilities
+## 5. Completed & Planned Capabilities
 - **Day 2:** 20 verified cave records covering Buddhist, Hindu, and Jain monuments.
 - **Day 4:** FastAPI microservice with fuzzy & semantic record lookups.
 - **Day 9:** `cave_trip_planner` tool scheduling days around ASI weekly closures and computing group tickets.
 - **Day 10:** Streamlit interactive UI featuring a "Must-See Route Strip".
+- **Day 11:** Production Docker container, docker-compose multi-service orchestration, and full test suite.
+- **Day 12:** GitHub Actions CI (`ruff`, `pytest`, `docker build`), merged feature PR, and live deployment on Render ([https://leniguide-sj-52.onrender.com/health](https://leniguide-sj-52.onrender.com/health)).

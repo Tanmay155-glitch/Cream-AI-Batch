@@ -205,7 +205,10 @@ def tool_node(state: AgentState) -> Dict[str, Any]:
         if state.get("tool_result") and state.get("approved") is not None:
             result = state["tool_result"]
         else:
-            result = cave_trip_planner(**tool_args)
+            # Filter valid kwargs for cave_trip_planner
+            planner_valid_keys = {"start_date", "num_days", "adults", "children_under_15", "payment_mode", "sites", "payment"}
+            filtered_args = {k: v for k, v in tool_args.items() if k in planner_valid_keys}
+            result = cave_trip_planner(**filtered_args)
 
         steps.append({
             "step": len(steps) + 1,
@@ -366,20 +369,22 @@ def synthesizer_node(state: AgentState) -> Dict[str, Any]:
                 f"- **Day 1 ({day1['weekday']}, {day1['date']}): Visit {day1['assigned_site']} Caves**",
                 f"  * *Reason:* {day1['closing_rule']}",
                 f"  * *Timings:* {day1['site_status']}",
-                "  * *Must-See Highlights:*",
             ]
-            for h in day1["must_see_highlights"]:
-                answer_parts.append(f"    - {h}")
+            if "must_see_highlights" in day1:
+                answer_parts.append("  * *Must-See Highlights:*")
+                for h in day1["must_see_highlights"]:
+                    answer_parts.append(f"    - {h}")
 
             if day2:
                 answer_parts.extend([
                     f"\n- **Day 2 ({day2['weekday']}, {day2['date']}): Visit {day2['assigned_site']} Caves**",
                     f"  * *Reason:* {day2['closing_rule']}",
                     f"  * *Timings:* {day2['site_status']}",
-                    "  * *Must-See Highlights:*",
                 ])
-                for h in day2["must_see_highlights"]:
-                    answer_parts.append(f"    - {h}")
+                if "must_see_highlights" in day2:
+                    answer_parts.append("  * *Must-See Highlights:*")
+                    for h in day2["must_see_highlights"]:
+                        answer_parts.append(f"    - {h}")
 
             answer_parts.extend([
                 "\n#### 2. Official ASI Entry Fee Calculation",

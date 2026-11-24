@@ -1,0 +1,57 @@
+{
+  "config_a": {
+    "chunk_size": 400,
+    "top_k": 4,
+    "hit_at_k": 1.0,
+    "mrr": 0.865,
+    "abstention_accuracy": 1.0,
+    "avg_response_time_ms": 5.23,
+    "total_questions": 15,
+    "answerable": 13,
+    "unanswerable": 2
+  },
+  "config_b": {
+    "chunk_size": 600,
+    "top_k": 6,
+    "hit_at_k": 1.0,
+    "mrr": 0.936,
+    "abstention_accuracy": 1.0,
+    "avg_response_time_ms": 4.4,
+    "total_questions": 15,
+    "answerable": 13,
+    "unanswerable": 2
+  },
+  "comparison": {
+    "config_a": "chunk_size=400, top_k=4",
+    "config_b": "chunk_size=600, top_k=6",
+    "metrics": {
+      "hit_at_k": {
+        "config_a": 1.0,
+        "config_b": 1.0,
+        "winner": "Tie",
+        "difference": 0.0
+      },
+      "mrr": {
+        "config_a": 0.865,
+        "config_b": 0.936,
+        "winner": "Config B",
+        "difference": 0.071
+      },
+      "abstention_accuracy": {
+        "config_a": 1.0,
+        "config_b": 1.0,
+        "winner": "Tie",
+        "difference": 0.0
+      },
+      "speed": {
+        "config_a_ms": 5.23,
+        "config_b_ms": 4.4,
+        "winner": "Config B",
+        "difference_ms": 0.83
+      }
+    },
+    "overall_winner": "Config B",
+    "reason": "Won 1/3 quality metrics"
+  },
+  "timestamp": "2026-11-23"
+}

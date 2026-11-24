@@ -79,8 +79,21 @@ def retrieve_context(
     """
     chunks = get_cached_chunks(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     
+    # Extract cave numbers early to adjust retrieval buffer
+    q_lower = question.lower()
+    cave_numbers = set()
+    cave_patterns = [
+        r'cave\s*(?:no\.?|number)?\s*(\d+)',
+        r'(?:ajanta|ellora)\s+(\d+)',
+    ]
+    for pattern in cave_patterns:
+        matches = re.findall(pattern, q_lower)
+        cave_numbers.update(matches)
+    
     # Retrieve top candidates with extra buffer for re-ranking
-    raw_results = semantic_search(query=question, chunks=chunks, top_k=max(top_k * 2, 8))
+    # Use larger buffer for cave-specific queries to ensure we get the specific cave chunks
+    buffer_size = max(top_k * 4, 16) if cave_numbers else max(top_k * 2, 8)
+    raw_results = semantic_search(query=question, chunks=chunks, top_k=buffer_size)
     
     # Apply site filter if requested
     if site_filter:
@@ -90,20 +103,28 @@ def retrieve_context(
             if r.get("metadata", {}).get("site", "").lower() in [s_lower, "both", "general"]
         ]
 
-    # Re-ranking: check if query is time/fee/closure sensitive
-    q_lower = question.lower()
+    # Re-ranking: check if query is time/fee/closure sensitive or cave-specific
     is_time_fee_query = any(k in q_lower for k in [
         "fee", "cost", "ticket", "price", "closed", "closure", "timing", "open", "hour", "rs", "rupee", "free", "save"
     ])
+    
+    # cave_numbers already extracted above
 
     re_ranked: List[Dict[str, Any]] = []
     for r in raw_results:
         score = r.get("score", 0.0)
         source = r.get("source", "").lower()
-        is_asi = "asi.nic.in" in source or r.get("metadata", {}).get("is_official_asi", False)
+        meta = r.get("metadata", {})
+        is_asi = "asi.nic.in" in source or meta.get("is_official_asi", False)
+        chunk_cave_no = str(meta.get("cave_no", "")).strip()
 
+        # Boost ASI sources for time/fee queries
         if is_time_fee_query and is_asi:
-            score += 0.08  # Prioritize authoritative ASI policies
+            score += 0.08
+
+        # Boost exact cave number matches significantly (helps with fake embeddings)
+        if cave_numbers and chunk_cave_no in cave_numbers:
+            score += 0.25  # Strong boost for exact cave match
 
         item = dict(r)
         item["rerank_score"] = round(score, 4)
@@ -140,14 +161,24 @@ def format_citations(chunks: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
 
 
 def build_rag_prompt(question: str, chunks: List[Dict[str, Any]]) -> str:
-    """Format retrieved chunks into numbered context blocks for LLM generation."""
+    """
+    Format retrieved chunks into numbered context blocks for LLM generation.
+    Includes source dates for transparency and verification.
+    """
     context_lines = []
+    # Extract source dates from chunks
+    source_dates = set()
+    
     for idx, c in enumerate(chunks, 1):
         meta = c.get("metadata", {})
         title = c.get("title", f"Document {idx}")
         source = c.get("source", "https://asi.nic.in")
         page = c.get("page", 1)
         text = c.get("text", "").strip()
+        source_date = meta.get("source_date", "")
+        
+        if source_date and source_date != "null":
+            source_dates.add(source_date)
 
         context_lines.append(
             f"[{idx}] {title} (Source: {source}, Section/Page: {page})\n"
@@ -155,7 +186,14 @@ def build_rag_prompt(question: str, chunks: List[Dict[str, Any]]) -> str:
         )
 
     context_str = "\n\n".join(context_lines)
-    return context_str
+    
+    # Add source date instruction to prompt if available
+    date_note = ""
+    if source_dates:
+        dates_str = ", ".join(sorted(source_dates))
+        date_note = f"\n\nNote: These sources were retrieved/verified as of {dates_str}. Always mention this date range in your answer for transparency."
+    
+    return context_str + date_note
 
 
 def generate_offline_grounded_answer(question: str, chunks: List[Dict[str, Any]]) -> str:

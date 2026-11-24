@@ -1,0 +1,63 @@
+﻿=== LENIGUIDE CODE COMPLIANCE CHECK ===
+Date: 2026-11-23 16:11:01
+
+[1/6] File Inventory
+  Python files: 43
+  JSON files: 8
+  Markdown files (NOT CHECKED): 62
+
+  Python Files:
+    analysis\explore.py (254 lines)
+    app\__init__.py (12 lines)
+    app\agent_loop.py (234 lines)
+    app\cache.py (78 lines)
+    app\chunking.py (476 lines)
+    app\cli.py (217 lines)
+    app\embed.py (387 lines)
+    app\fetch.py (326 lines)
+    app\graph.py (500 lines)
+    app\ingest.py (356 lines)
+    app\llm.py (519 lines)
+    app\main.py (843 lines)
+    app\models.py (199 lines)
+    app\observability.py (93 lines)
+    app\rag.py (434 lines)
+    app\records.py (229 lines)
+    app\routes.py (138 lines)
+    app\security.py (56 lines)
+    app\smart_search.py (317 lines)
+    app\tools.py (413 lines)
+    app\vectorstore.py (288 lines)
+    data\sample_records.py (233 lines)
+    day01_intro.py (31 lines)
+    day01_menu.py (67 lines)
+    eval\run_eval.py (263 lines)
+    scripts\benchmark.py (108 lines)
+    scripts\check_no_secrets.py (83 lines)
+    test_chat.py (34 lines)
+    tests\__init__.py (1 lines)
+    tests\conftest.py (95 lines)
+    tests\test_agent_tool.py (76 lines)
+    tests\test_api.py (59 lines)
+    tests\test_api_and_rag.py (67 lines)
+    tests\test_day06_llm.py (70 lines)
+    tests\test_day09_agent.py (185 lines)
+    tests\test_day10_ui.py (190 lines)
+    tests\test_planner.py (93 lines)
+    tests\test_rag.py (59 lines)
+    tests\test_records.py (53 lines)
+    tests\test_records_and_search.py (62 lines)
+    tests\test_security.py (38 lines)
+    tests\test_security_and_obs.py (125 lines)
+    ui\app.py (460 lines)
+
+  JSON Files:
+    data\feedback.json (0 KB)
+    data\questions.json (6 KB)
+    data\records.json (13.9 KB)
+    data\routes.json (3.9 KB)
+    data\sample_records.json (13.9 KB)
+    data\site_rules.json (0.8 KB)
+    eval\eval_set.json (7.6 KB)
+    eval\questions.json (6 KB)
+

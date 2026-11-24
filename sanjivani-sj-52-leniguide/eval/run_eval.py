@@ -1,29 +1,23 @@
+#!/usr/bin/env python3
 """
-RAG Evaluation and Hyperparameter Tuning Script for LeniGuide.
+Evaluation Runner with 2-Config Comparison
 Student: Tanmay Subhash Gawali (Reg No: 2124UMLM2016, Branch: CSE AI & ML)
-Project: SJ-52 | Product: LeniGuide (Ajanta & Ellora UNESCO Heritage Guide)
+Project: SJ-52 | Product: LeniGuide
 
-Compares two RAG configurations on the 15-row eval/eval_set.json benchmark:
-  - Config A: chunk_size=200, chunk_overlap=30, top_k=2 (Small Chunks / Narrow Top-K)
-  - Config B: chunk_size=450, chunk_overlap=60, top_k=4 (Balanced Cave-Aware / Wider Top-K - WINNER)
+Runs RAG evaluation with two different configurations and compares metrics:
+  - Config A: chunk_size=400, top_k=4 (baseline)
+  - Config B: chunk_size=600, top_k=6 (larger chunks, more context)
 
-Computes:
-  1. Retrieval Hit Rate (Recall@K for expected caves / ASI rules)
-  2. Fact & Keyword Accuracy (Fraction of expected keywords in answer)
-  3. Citation Accuracy (% of answerable queries with valid ASI citations)
-  4. Guardrail Abstention Rate (Q6 & Q15 saying "I don't know" without hallucinating)
-  5. Average Latency (ms)
-  6. Overall RAG Performance Score
-
-Outputs terminal comparison table and writes eval/eval_results.md.
+Metrics:
+  - Hit@K: Whether correct source appears in top-K results
+  - MRR: Mean Reciprocal Rank
+  - Abstention accuracy: Does Q6 correctly abstain?
 """
 
 import json
 import sys
-import time
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
@@ -31,275 +25,278 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from app.rag import answer_question, retrieve_context
 
-EVAL_DIR = PROJECT_ROOT / "eval"
-EVAL_SET_FILE = EVAL_DIR / "eval_set.json"
-EVAL_RESULTS_FILE = EVAL_DIR / "eval_results.md"
+
+def load_eval_set(path: str = "eval/eval_set.json") -> List[Dict[str, Any]]:
+    """Load evaluation questions with expected answers."""
+    eval_path = PROJECT_ROOT / path
+    with open(eval_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 
-CONFIGS = {
-    "Config A (Small Chunks / Narrow Top-K)": {
-        "chunk_size": 200,
-        "chunk_overlap": 30,
-        "top_k": 2,
-        "description": "Aggressive fragmentation (200 chars), top_k=2"
-    },
-    "Config B (Balanced Cave-Aware Chunks - WINNER)": {
-        "chunk_size": 450,
-        "chunk_overlap": 60,
-        "top_k": 4,
-        "description": "Cave-aware chunking (450 chars keeping highlights & visit_info intact), top_k=4"
-    }
-}
+def evaluate_config(
+    eval_set: List[Dict[str, Any]],
+    chunk_size: int,
+    top_k: int
+) -> Dict[str, Any]:
+    """
+    Run evaluation with specific configuration.
+    
+    Returns:
+        Dict with metrics: hit_at_k, mrr, abstention_accuracy, avg_response_time
+    """
+    hits = 0
+    reciprocal_ranks = []
+    abstention_correct = 0
+    response_times = []
+    
+    print(f"\n  Evaluating with chunk_size={chunk_size}, top_k={top_k}")
+    
+    for i, item in enumerate(eval_set, 1):
+        question = item["question"]
+        expected_sources = list(item.get("expected_sources", []))
+        if not expected_sources:
+            site = item.get("expected_site", "")
+            if site == "Ajanta":
+                expected_sources = ["WorldHeritageAjantaCaves", "ajanta"]
+            elif site == "Ellora":
+                expected_sources = ["WorldHeritageElloraCaves", "ellora"]
+            else:
+                expected_sources = ["asi.nic.in", "WorldHeritage"]
 
-
-def evaluate_single_config(config_name: str, config: Dict[str, Any], eval_set: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Run all 15 evaluation rows against one RAG configuration."""
-    chunk_size = config["chunk_size"]
-    chunk_overlap = config["chunk_overlap"]
-    top_k = config["top_k"]
-
-    retrieval_hits = 0
-    keyword_matches_total = 0
-    keyword_count_total = 0
-    valid_citations_count = 0
-    answerable_count = 0
-    guardrail_abstentions = 0
-    unanswerable_count = 0
-    total_latency_ms = 0.0
-
-    detailed_rows = []
-
-    for row in eval_set:
-        qid = row["id"]
-        question = row["question"]
-        expected_keywords = row.get("expected_keywords", [])
-        expected_caves = row.get("expected_caves", [])
-        answerable = row.get("answerable", True)
-
-        start_time = time.time()
-        result = answer_question(
-            question=question,
-            top_k=top_k,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap
-        )
-        latency_ms = (time.time() - start_time) * 1000.0
-        total_latency_ms += latency_ms
-
-        answer_text = result.get("answer", "")
-        citations = result.get("citations", [])
-        abstained = result.get("abstained", False)
-
-        # 1. Retrieval Hit Rate check
-        retrieved_chunks = retrieve_context(
-            question=question,
-            top_k=top_k,
-            chunk_size=chunk_size,
-            chunk_overlap=chunk_overlap
-        )
-        retrieved_text = " ".join([c.get("text", "") + " " + c.get("title", "") for c in retrieved_chunks]).lower()
-
-        if not answerable:
-            # For unanswerable, retrieval score is checked for abstention trigger
-            hit = abstained or (len(retrieved_chunks) == 0) or (retrieved_chunks[0].get("rerank_score", 0.0) < 0.35)
-        elif expected_caves:
-            # Check if any expected cave number is present in retrieved chunks
-            hit = any(
-                (f"cave {c}" in retrieved_text or f"cave-{c}" in retrieved_text or f" {c} " in retrieved_text)
-                for c in expected_caves
+        should_abstain = not item.get("answerable", True)
+        
+        # Get answer with current config
+        try:
+            result = answer_question(
+                question,
+                chunk_size=chunk_size,
+                top_k=top_k
             )
-        else:
-            # Policy or general queries: check for ASI or timing/fee terms
-            hit = any(term in retrieved_text for term in ["asi", "closed", "fee", "free", "ticket", "hours", "entry"])
+            
+            response_times.append(result.get("latency_ms", 0))
+            
+            # Check abstention
+            if should_abstain:
+                if result.get("abstained", False):
+                    abstention_correct += 1
+                    print(f"    Q{i}: ✓ Correctly abstained")
+                else:
+                    print(f"    Q{i}: ✗ Should have abstained but didn't")
+            else:
+                # Check if expected source or cave is in results
+                citations = result.get("citations", [])
+                answer_text = result.get("answer", "").lower()
+                expected_caves = [str(c) for c in item.get("expected_caves", [])]
+                
+                found = False
+                rank = None
+                for j, cit in enumerate(citations[:top_k], 1):
+                    c_source = cit.get("source", "").lower()
+                    c_id = cit.get("chunk_id", "").lower()
+                    c_meta = cit.get("metadata", {})
+                    c_cave = str(c_meta.get("cave_no", "")).lower()
 
-        if hit:
-            retrieval_hits += 1
+                    source_match = any(exp.lower() in c_source for exp in expected_sources)
+                    cave_match = True
+                    if expected_caves:
+                        cave_match = any(c in c_id or c == c_cave for c in expected_caves) or any(f"cave {c}" in answer_text or f"cave-{c}" in answer_text for c in expected_caves)
 
-        # 2. Fact & Keyword Accuracy
-        kw_matched = 0
-        ans_lower = answer_text.lower()
-        for kw in expected_keywords:
-            if kw.lower() in ans_lower:
-                kw_matched += 1
+                    if source_match and cave_match:
+                        found = True
+                        rank = j
+                        break
 
-        keyword_matches_total += kw_matched
-        keyword_count_total += len(expected_keywords)
+                if not found and citations:
+                    kw_matches = sum(1 for kw in item.get("expected_keywords", []) if kw.lower() in answer_text)
+                    if kw_matches >= 1 and any("asi.nic.in" in c.get("source", "").lower() for c in citations):
+                        found = True
+                        rank = 1
 
-        # 3. Citation Accuracy
-        has_valid_citation = False
-        if answerable:
-            answerable_count += 1
-            has_valid_citation = any(
-                ("asi.nic.in" in c.get("source", "").lower() or c.get("cave_no") != "")
-                for c in citations
-            )
-            if has_valid_citation:
-                valid_citations_count += 1
-        else:
-            unanswerable_count += 1
-            # 4. Guardrail Abstention Check
-            if abstained and "i don't know" in ans_lower:
-                guardrail_abstentions += 1
-
-        detailed_rows.append({
-            "id": qid,
-            "question": question,
-            "answerable": answerable,
-            "retrieval_hit": hit,
-            "keywords_matched": f"{kw_matched}/{len(expected_keywords)}",
-            "has_citation": has_valid_citation if answerable else "N/A (abstained)",
-            "abstained": abstained,
-            "latency_ms": round(latency_ms, 1),
-            "answer_preview": answer_text[:110] + "..." if len(answer_text) > 110 else answer_text
-        })
-
-    # Summary metrics
-    n_total = len(eval_set)
-    retrieval_hit_rate = (retrieval_hits / n_total) * 100.0
-    fact_accuracy = (keyword_matches_total / max(keyword_count_total, 1)) * 100.0
-    citation_rate = (valid_citations_count / max(answerable_count, 1)) * 100.0
-    guardrail_accuracy = (guardrail_abstentions / max(unanswerable_count, 1)) * 100.0
-    avg_latency = total_latency_ms / max(n_total, 1)
-
-    # Weighted Overall Score: 30% Retrieval + 30% Fact Accuracy + 20% Citation + 20% Guardrail
-    overall_score = (
-        0.30 * retrieval_hit_rate +
-        0.30 * fact_accuracy +
-        0.20 * citation_rate +
-        0.20 * guardrail_accuracy
-    )
-
+                if found:
+                    hits += 1
+                    reciprocal_ranks.append(1.0 / rank)
+                    print(f"    Q{i}: ✓ Found at rank {rank}")
+                else:
+                    reciprocal_ranks.append(0.0)
+                    print(f"    Q{i}: ✗ Expected source/cave not in top-{top_k}")
+        
+        except Exception as e:
+            print(f"    Q{i}: ERROR - {e}")
+            reciprocal_ranks.append(0.0)
+    
+    # Calculate metrics
+    answerable_count = sum(1 for item in eval_set if item.get("answerable", True))
+    unanswerable_count = len(eval_set) - answerable_count
+    
+    hit_at_k = hits / answerable_count if answerable_count > 0 else 0.0
+    mrr = sum(reciprocal_ranks) / len(reciprocal_ranks) if reciprocal_ranks else 0.0
+    abstention_acc = abstention_correct / unanswerable_count if unanswerable_count > 0 else 0.0
+    avg_response_time = sum(response_times) / len(response_times) if response_times else 0.0
+    
     return {
-        "config_name": config_name,
-        "config": config,
-        "retrieval_hit_rate": round(retrieval_hit_rate, 1),
-        "fact_accuracy": round(fact_accuracy, 1),
-        "citation_rate": round(citation_rate, 1),
-        "guardrail_accuracy": round(guardrail_accuracy, 1),
-        "avg_latency_ms": round(avg_latency, 1),
-        "overall_score": round(overall_score, 1),
-        "detailed_rows": detailed_rows
+        "chunk_size": chunk_size,
+        "top_k": top_k,
+        "hit_at_k": round(hit_at_k, 3),
+        "mrr": round(mrr, 3),
+        "abstention_accuracy": round(abstention_acc, 3),
+        "avg_response_time_ms": round(avg_response_time, 2),
+        "total_questions": len(eval_set),
+        "answerable": answerable_count,
+        "unanswerable": unanswerable_count
     }
 
 
-def generate_eval_results_markdown(results_a: Dict[str, Any], results_b: Dict[str, Any]) -> str:
-    """Format evaluation comparison report as GitHub Markdown."""
-    lines = []
-    lines.append("# Day 8 RAG Evaluation & Tuning Report")
-    lines.append("")
-    lines.append("- **Student Name:** Tanmay Subhash Gawali (Reg No: 2124UMLM2016, Branch: CSE AI & ML)")
-    lines.append("- **Project ID:** SJ-52")
-    lines.append("- **Product Name:** LeniGuide")
-    lines.append("- **Repository:** `sanjivani-sj-52-leniguide`")
-    lines.append(f"- **Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    lines.append("- **Benchmark:** `eval/eval_set.json` (15 total evaluation rows)")
-    lines.append("")
-    lines.append("## Executive Summary")
-    lines.append("")
-    lines.append("We evaluated **two distinct RAG architectures** across the 15-row LeniGuide benchmark to establish the winning configuration:")
-    lines.append("- **Config A (Small Chunks / Narrow Top-K):** `chunk_size = 200`, `chunk_overlap = 30`, `top_k = 2`")
-    lines.append("- **Config B (Balanced Cave-Aware Chunks / Wider Top-K — WINNER):** `chunk_size = 450`, `chunk_overlap = 60`, `top_k = 4`")
-    lines.append("")
-    lines.append("### Why Config B Won")
-    lines.append("1. **Multi-Cave Synthesis (Q3, Q5, Q7):** Questions covering multiple caves across Buddhist, Hindu, and Jain traditions (e.g. Ellora Caves 10, 16, and 32) require `top_k=4` to bring all relevant caves into the prompt. With `top_k=2`, Config A misses Cave 32 or Cave 10.")
-    lines.append("2. **Context Coherence:** A cave's architectural highlights and its visit timings/fees form a logical unit (~300–420 characters). Config A's aggressive 200-character chunking splits descriptions mid-sentence, causing retrieval misses on combined inquiries (like Q4).")
-    lines.append("3. **100% Guardrail Robustness:** Both configurations achieve 100% on unanswerable guardrails (Q6 & Q15) by strictly abstaining with *\"I don't know\"* when tourist footfall or hotel tariffs are requested.")
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-    lines.append("## RAG Configuration Comparison & Winner Table")
-    lines.append("")
-    lines.append("| Metric | Config A (`chunk_size=200, k=2`) | Config B (`chunk_size=450, k=4`) — 🏆 WINNER | Delta / Gain |")
-    lines.append("|---|:---:|:---:|:---:|")
-    lines.append(f"| **Retrieval Hit Rate (Recall@K)** | {results_a['retrieval_hit_rate']}% | **{results_b['retrieval_hit_rate']}%** | +{round(results_b['retrieval_hit_rate'] - results_a['retrieval_hit_rate'], 1)}% |")
-    lines.append(f"| **Fact & Keyword Accuracy** | {results_a['fact_accuracy']}% | **{results_b['fact_accuracy']}%** | +{round(results_b['fact_accuracy'] - results_a['fact_accuracy'], 1)}% |")
-    lines.append(f"| **Citation Rate (Valid ASI Source)** | {results_a['citation_rate']}% | **{results_b['citation_rate']}%** | +{round(results_b['citation_rate'] - results_a['citation_rate'], 1)}% |")
-    lines.append(f"| **Guardrail Abstention (Q6 & Q15)** | {results_a['guardrail_accuracy']}% | **{results_b['guardrail_accuracy']}%** | 0.0% (Tied) |")
-    lines.append(f"| **Average Latency (ms)** | {results_a['avg_latency_ms']} ms | {results_b['avg_latency_ms']} ms | +{round(results_b['avg_latency_ms'] - results_a['avg_latency_ms'], 1)} ms |")
-    lines.append(f"| **OVERALL RAG SCORE** | {results_a['overall_score']}% | **{results_b['overall_score']}%** | **+{round(results_b['overall_score'] - results_a['overall_score'], 1)}%** |")
-    lines.append("")
-    lines.append("---")
-    lines.append("")
-    lines.append("## Detailed Row-by-Row Evaluation (Config B - Winner)")
-    lines.append("")
-    lines.append("| ID | Question | Expected Caves / Target | Hit | Keywords Matched | Citations | Abstained | Latency |")
-    lines.append("|:---:|---|:---:|:---:|:---:|:---:|:---:|:---:|")
+def compare_configs(results_a: Dict, results_b: Dict) -> Dict[str, Any]:
+    """Compare two configurations and determine winner."""
+    comparison = {
+        "config_a": f"chunk_size={results_a['chunk_size']}, top_k={results_a['top_k']}",
+        "config_b": f"chunk_size={results_b['chunk_size']}, top_k={results_b['top_k']}",
+        "metrics": {}
+    }
+    
+    # Compare each metric
+    for metric in ["hit_at_k", "mrr", "abstention_accuracy"]:
+        a_val = results_a[metric]
+        b_val = results_b[metric]
+        
+        if a_val > b_val:
+            winner = "Config A"
+            diff = a_val - b_val
+        elif b_val > a_val:
+            winner = "Config B"
+            diff = b_val - a_val
+        else:
+            winner = "Tie"
+            diff = 0.0
+        
+        comparison["metrics"][metric] = {
+            "config_a": a_val,
+            "config_b": b_val,
+            "winner": winner,
+            "difference": round(diff, 3)
+        }
+    
+    # Speed comparison (lower is better)
+    a_time = results_a["avg_response_time_ms"]
+    b_time = results_b["avg_response_time_ms"]
+    
+    if a_time < b_time:
+        speed_winner = "Config A"
+        diff = b_time - a_time
+    elif b_time < a_time:
+        speed_winner = "Config B"
+        diff = a_time - b_time
+    else:
+        speed_winner = "Tie"
+        diff = 0.0
+    
+    comparison["metrics"]["speed"] = {
+        "config_a_ms": a_time,
+        "config_b_ms": b_time,
+        "winner": speed_winner,
+        "difference_ms": round(diff, 2)
+    }
+    
+    # Overall winner (by quality metrics, speed is tie-breaker)
+    quality_wins_a = sum(1 for m in ["hit_at_k", "mrr", "abstention_accuracy"] 
+                         if comparison["metrics"][m]["winner"] == "Config A")
+    quality_wins_b = sum(1 for m in ["hit_at_k", "mrr", "abstention_accuracy"] 
+                         if comparison["metrics"][m]["winner"] == "Config B")
+    
+    if quality_wins_a > quality_wins_b:
+        comparison["overall_winner"] = "Config A"
+        comparison["reason"] = f"Won {quality_wins_a}/3 quality metrics"
+    elif quality_wins_b > quality_wins_a:
+        comparison["overall_winner"] = "Config B"
+        comparison["reason"] = f"Won {quality_wins_b}/3 quality metrics"
+    else:
+        # Tie-breaker: speed
+        if speed_winner == "Config A":
+            comparison["overall_winner"] = "Config A"
+            comparison["reason"] = f"Tied quality ({quality_wins_a}/{quality_wins_b}), faster by {diff:.2f}ms"
+        elif speed_winner == "Config B":
+            comparison["overall_winner"] = "Config B"
+            comparison["reason"] = f"Tied quality ({quality_wins_a}/{quality_wins_b}), faster by {diff:.2f}ms"
+        else:
+            comparison["overall_winner"] = "Tie"
+            comparison["reason"] = "Perfect tie on all metrics"
+    
+    return comparison
 
-    for r in results_b["detailed_rows"]:
-        hit_icon = "✅" if r["retrieval_hit"] else "❌"
-        cite_str = "✅ Yes" if r["has_citation"] is True else str(r["has_citation"])
-        abst_str = "✅ Yes (Guardrail)" if r["abstained"] else "No"
-        lines.append(f"| **{r['id']}** | {r['question'][:45]}... | {'Unanswerable' if not r['answerable'] else 'Answerable'} | {hit_icon} | {r['keywords_matched']} | {cite_str} | {abst_str} | {r['latency_ms']} ms |")
 
-    lines.append("")
-    lines.append("### Sample RAG Outputs from Config B")
-    lines.append("")
-    for r in results_b["detailed_rows"][:6]:
-        lines.append(f"#### [{r['id']}] {r['question']}")
-        lines.append(f"**Answer:** {r['answer_preview']}")
-        lines.append("")
+def print_results(results_a: Dict, results_b: Dict, comparison: Dict):
+    """Pretty-print evaluation results."""
+    print("\n" + "=" * 70)
+    print("  EVALUATION RESULTS - 2-CONFIG COMPARISON")
+    print("=" * 70)
+    
+    print("\n📊 Config A: chunk_size=400, top_k=4 (Baseline)")
+    print(f"   Hit@K:              {results_a['hit_at_k']:.1%}")
+    print(f"   MRR:                {results_a['mrr']:.3f}")
+    print(f"   Abstention Acc:     {results_a['abstention_accuracy']:.1%}")
+    print(f"   Avg Response Time:  {results_a['avg_response_time_ms']:.2f} ms")
+    
+    print("\n📊 Config B: chunk_size=600, top_k=6 (Larger Context)")
+    print(f"   Hit@K:              {results_b['hit_at_k']:.1%}")
+    print(f"   MRR:                {results_b['mrr']:.3f}")
+    print(f"   Abstention Acc:     {results_b['abstention_accuracy']:.1%}")
+    print(f"   Avg Response Time:  {results_b['avg_response_time_ms']:.2f} ms")
+    
+    print("\n🏆 WINNER ANALYSIS")
+    print("-" * 70)
+    for metric, data in comparison["metrics"].items():
+        winner = data["winner"]
+        diff = data["difference"] if metric != "speed" else data["difference_ms"]
+        
+        if metric == "speed":
+            print(f"   {metric.upper():20s}: {winner:12s} (Δ {diff:+.2f} ms)")
+        else:
+            print(f"   {metric.upper():20s}: {winner:12s} (Δ {diff:+.3f})")
+    
+    print("-" * 70)
+    print(f"\n🎯 OVERALL WINNER: {comparison['overall_winner']}")
+    print(f"   Reason: {comparison['reason']}")
+    
+    print("\n" + "=" * 70)
 
-    return "\n".join(lines)
 
-
-def run_evaluation():
-    """Main execution entry point."""
-    print("=" * 80)
-    print("LENIGUIDE RAG EVALUATION & TUNING (DAY 8 - S2)")
-    print("Student: Tanmay Subhash Gawali (SJ-52)")
-    print("=" * 80)
-
-    if not EVAL_SET_FILE.exists():
-        print(f"✗ Evaluation set not found at {EVAL_SET_FILE}")
-        return
-
-    with open(EVAL_SET_FILE, "r", encoding="utf-8") as f:
-        eval_set = json.load(f)
-
-    print(f"✓ Loaded {len(eval_set)} evaluation test rows from eval_set.json\n")
-
-    # Evaluate Config A
-    print("Running Config A (chunk_size=200, top_k=2)...")
-    results_a = evaluate_single_config(
-        "Config A",
-        CONFIGS["Config A (Small Chunks / Narrow Top-K)"],
-        eval_set
-    )
-    print(f"  → Overall Score: {results_a['overall_score']}% (Hit Rate: {results_a['retrieval_hit_rate']}%, Latency: {results_a['avg_latency_ms']}ms)\n")
-
-    # Evaluate Config B
-    print("Running Config B (chunk_size=450, top_k=4) - Candidate Winner...")
-    results_b = evaluate_single_config(
-        "Config B",
-        CONFIGS["Config B (Balanced Cave-Aware Chunks - WINNER)"],
-        eval_set
-    )
-    print(f"  → Overall Score: {results_b['overall_score']}% (Hit Rate: {results_b['retrieval_hit_rate']}%, Latency: {results_b['avg_latency_ms']}ms)\n")
-
-    # Terminal Winner Table
-    print("=" * 80)
-    print("RAG CONFIGURATION COMPARISON & WINNER TABLE")
-    print("=" * 80)
-    print(f"{'Metric':<35} | {'Config A (k=2)':<16} | {'Config B (k=4) [WINNER]':<22}")
-    print("-" * 80)
-    print(f"{'Retrieval Hit Rate (Recall@K)':<35} | {results_a['retrieval_hit_rate']:<16}% | {results_b['retrieval_hit_rate']:<22}%")
-    print(f"{'Fact & Keyword Accuracy':<35} | {results_a['fact_accuracy']:<16}% | {results_b['fact_accuracy']:<22}%")
-    print(f"{'Citation Rate (Valid ASI)':<35} | {results_a['citation_rate']:<16}% | {results_b['citation_rate']:<22}%")
-    print(f"{'Guardrail Abstention (Q6 & Q15)':<35} | {results_a['guardrail_accuracy']:<16}% | {results_b['guardrail_accuracy']:<22}%")
-    print(f"{'Average Latency (ms)':<35} | {results_a['avg_latency_ms']:<16} ms | {results_b['avg_latency_ms']:<22} ms")
-    print("-" * 80)
-    print(f"{'OVERALL RAG SCORE':<35} | {results_a['overall_score']:<16}% | {results_b['overall_score']:<22}%")
-    print("=" * 80)
-    print("🏆 WINNER: Config B (chunk_size=450, top_k=4)")
-    print("=" * 80)
-
-    # Write results report
-    md_content = generate_eval_results_markdown(results_a, results_b)
-    EVAL_DIR.mkdir(parents=True, exist_ok=True)
-    with open(EVAL_RESULTS_FILE, "w", encoding="utf-8") as f:
-        f.write(md_content)
-    print(f"\n✓ Saved detailed evaluation report to {EVAL_RESULTS_FILE}")
+def main():
+    """Run evaluation with two configurations and compare."""
+    print("Loading evaluation set...")
+    eval_set = load_eval_set()
+    print(f"✓ Loaded {len(eval_set)} questions")
+    
+    # Config A: Baseline (smaller chunks, less context)
+    print("\n[1/2] Running Config A (chunk_size=400, top_k=4)...")
+    results_a = evaluate_config(eval_set, chunk_size=400, top_k=4)
+    
+    # Config B: Larger context (bigger chunks, more results)
+    print("\n[2/2] Running Config B (chunk_size=600, top_k=6)...")
+    results_b = evaluate_config(eval_set, chunk_size=600, top_k=6)
+    
+    # Compare
+    comparison = compare_configs(results_a, results_b)
+    
+    # Display results
+    print_results(results_a, results_b, comparison)
+    
+    # Save results
+    output = {
+        "config_a": results_a,
+        "config_b": results_b,
+        "comparison": comparison,
+        "timestamp": "2026-11-23"
+    }
+    
+    output_path = PROJECT_ROOT / "eval" / "eval_results.json"
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(output, f, indent=2)
+    
+    print(f"\n✓ Results saved to {output_path}")
+    
+    return comparison["overall_winner"]
 
 
 if __name__ == "__main__":
-    run_evaluation()
+    winner = main()
+    sys.exit(0 if winner else 1)

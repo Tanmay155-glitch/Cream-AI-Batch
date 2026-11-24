@@ -19,6 +19,10 @@ class Record:
         highlights: Key architectural and artistic features
         visit_info: Timing, fees, and visit recommendations
         source_url: Official ASI or verified source URL
+        id: Unique identifier (e.g., "ajanta-001")
+        source_type: "official" | "wikipedia" | "unofficial"
+        source_date: Date fetched or page date (e.g., "2026-11")
+        authority_rank: 1 = ASI, 2 = Wikipedia, 3 = other
     """
     
     site: str
@@ -27,10 +31,29 @@ class Record:
     highlights: str
     visit_info: str
     source_url: str
+    id: str = ""
+    source_type: str = "official"
+    source_date: str = "2026-11"
+    authority_rank: int = 1
     
     def __post_init__(self):
         """Validate and normalize fields immediately after initialization."""
         self.validate()
+        if not self.id:
+            try:
+                self.id = f"{self.site.lower()}-{int(self.cave_no):03d}"
+            except Exception:
+                self.id = f"{self.site.lower()}-{self.cave_no}"
+        if not self.source_type:
+            if "asi.nic.in" in self.source_url:
+                self.source_type = "official"
+                self.authority_rank = 1
+            elif "wikipedia.org" in self.source_url:
+                self.source_type = "wikipedia"
+                self.authority_rank = 2
+            else:
+                self.source_type = "unofficial"
+                self.authority_rank = 3
     
     def validate(self) -> None:
         """
@@ -69,12 +92,14 @@ class Record:
     
     def to_dict(self) -> Dict[str, Any]:
         """
-        Convert the Record to a dictionary.
+        Convert the Record to a dictionary with backward-compatible authority key.
         
         Returns:
             Dictionary representation of the record.
         """
-        return asdict(self)
+        d = asdict(self)
+        d["authority"] = "official" if self.authority_rank == 1 else ("reference" if self.authority_rank == 2 else self.source_type)
+        return d
     
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "Record":
@@ -93,13 +118,19 @@ class Record:
         """
         # Extract required fields with validation
         try:
+            source_type = data.get("source_type", "official" if "asi.nic.in" in data.get("source_url", "") else data.get("authority", "official"))
+            authority_rank = data.get("authority_rank", 1 if source_type == "official" else (2 if source_type == "wikipedia" else 3))
             return cls(
                 site=data["site"],
                 cave_no=data["cave_no"],
                 religion_period=data["religion_period"],
                 highlights=data["highlights"],
                 visit_info=data["visit_info"],
-                source_url=data["source_url"]
+                source_url=data["source_url"],
+                id=data.get("id", ""),
+                source_type=source_type,
+                source_date=data.get("source_date", "2026-11"),
+                authority_rank=authority_rank,
             )
         except KeyError as e:
             raise ValueError(f"Missing required field: {e}")

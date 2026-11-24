@@ -1,0 +1,34 @@
+{
+  "ajanta": {
+    "description": "Caves arranged in a horseshoe-shaped gorge along the Waghur River. Walking order follows cave numbering from the entrance.",
+    "walking_order": [
+      {"order": 1, "cave_no": "1",  "religion": "Buddhist", "minutes": 45, "star": true,  "reason": "Masterpiece Padmapani and Vajrapani murals"},
+      {"order": 2, "cave_no": "2",  "religion": "Buddhist", "minutes": 40, "star": true,  "reason": "Best-preserved painted ceilings and birth of Buddha scenes"},
+      {"order": 3, "cave_no": "9",  "religion": "Buddhist", "minutes": 25, "star": false, "reason": "Early chaitya hall with horseshoe-shaped entrance"},
+      {"order": 4, "cave_no": "10", "religion": "Buddhist", "minutes": 30, "star": false, "reason": "Oldest surviving cave, earliest Brahmi inscriptions"},
+      {"order": 5, "cave_no": "16", "religion": "Buddhist", "minutes": 50, "star": true,  "reason": "Famous Dying Princess mural and Conversion of Nanda"},
+      {"order": 6, "cave_no": "17", "religion": "Buddhist", "minutes": 45, "star": true,  "reason": "Richest repository of Jataka tale paintings"},
+      {"order": 7, "cave_no": "19", "religion": "Buddhist", "minutes": 35, "star": false, "reason": "Ornate chaitya facade with Buddha figures"},
+      {"order": 8, "cave_no": "26", "religion": "Buddhist", "minutes": 40, "star": true,  "reason": "Majestic 7m reclining Buddha in Mahaparinirvana pose"}
+    ],
+    "notes": "Walking order follows the horseshoe path by cave number. Minutes and stars are editorial estimates by the student, not ASI data. Criteria for stars: significance of murals/sculptures, historical importance, visual impact for school students."
+  },
+  "ellora": {
+    "description": "Caves arranged along a basalt escarpment running roughly south to north: Buddhist (1-12) → Hindu (13-29) → Jain (30-34).",
+    "walking_order": [
+      {"order": 1,  "cave_no": "5",  "religion": "Buddhist", "minutes": 20, "star": false, "reason": "Largest Buddhist vihara with stone benches"},
+      {"order": 2,  "cave_no": "10", "religion": "Buddhist", "minutes": 35, "star": true,  "reason": "Vishwakarma Carpenter's Cave, cathedral chaitya hall"},
+      {"order": 3,  "cave_no": "12", "religion": "Buddhist", "minutes": 40, "star": false, "reason": "Three-storied Tin Thal vihara"},
+      {"order": 4,  "cave_no": "14", "religion": "Hindu",    "minutes": 30, "star": false, "reason": "Transitional Buddhist-Hindu cave"},
+      {"order": 5,  "cave_no": "15", "religion": "Hindu",    "minutes": 45, "star": true,  "reason": "Dashavatara: Ten Incarnations of Vishnu panels"},
+      {"order": 6,  "cave_no": "16", "religion": "Hindu",    "minutes": 90, "star": true,  "reason": "Monolithic Kailasa Temple, world's largest rock-cut monument"},
+      {"order": 7,  "cave_no": "21", "religion": "Hindu",    "minutes": 25, "star": false, "reason": "Rameshvara, exquisite Ganga and Yamuna sculptures"},
+      {"order": 8,  "cave_no": "29", "religion": "Hindu",    "minutes": 35, "star": false, "reason": "Dhumar Lena, Ravana shaking Mount Kailasa panel"},
+      {"order": 9,  "cave_no": "30", "religion": "Jain",     "minutes": 20, "star": false, "reason": "Chhota Kailasa, miniature version of Cave 16"},
+      {"order": 10, "cave_no": "32", "religion": "Jain",     "minutes": 45, "star": true,  "reason": "Indra Sabha, finest Jain cave with lotus ceiling"},
+      {"order": 11, "cave_no": "33", "religion": "Jain",     "minutes": 25, "star": true,  "reason": "Jagannatha Sabha with Tirthankara iconography"},
+      {"order": 12, "cave_no": "34", "religion": "Jain",     "minutes": 15, "star": false, "reason": "Final cave, culmination of Ellora's three religions"}
+    ],
+    "notes": "Walking order follows the escarpment path Buddhist → Hindu → Jain. Minutes and stars are editorial estimates by the student, not ASI data. Criteria for stars: architectural grandeur, educational value for school groups, representation of the three religions."
+  }
+}

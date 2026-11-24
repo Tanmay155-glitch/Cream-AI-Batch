@@ -1,0 +1,25 @@
+{
+    "ajanta":  {
+                   "closed_day":  "Monday",
+                   "timings":  "9:00 AM to 5:00 PM",
+                   "fee_indian_cash":  40,
+                   "fee_indian_online":  35,
+                   "child_free_under_age":  15,
+                   "source_url":  "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
+                   "verified_on":  null,
+                   "authority":  "official",
+                   "notes":  "Fees to be verified by user via MANUAL STEP M-4. Values shown are from ASI site as of project start."
+               },
+    "ellora":  {
+                   "closed_day":  "Tuesday",
+                   "timings":  "Sunrise to Sunset",
+                   "fee_indian_cash":  40,
+                   "fee_indian_online":  35,
+                   "child_free_under_age":  15,
+                   "source_url":  "https://asi.nic.in/pages/WorldHeritageElloraCaves",
+                   "verified_on":  null,
+                   "authority":  "official",
+                   "notes":  "Fees to be verified by user via MANUAL STEP M-4. Values shown are from ASI site as of project start."
+               },
+    "verified_on":  "2026-11"
+}

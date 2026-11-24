@@ -159,17 +159,29 @@ def get_by_id(records: List[Dict[str, Any]],
                 return record
         return None
     
-    # Pattern 2 & 3: Single argument - could be composite ID or just cave number
-    identifier = record_id_or_site
-    
-    # Check if it's a composite ID (contains hyphen)
+    # Pattern 2 & 3: Single argument - could be composite ID, direct record ID, or just cave number
+    identifier = str(record_id_or_site).strip()
+
+    # Direct match on record ID (e.g., 'ajanta-001', 'ajanta-016', 'ellora-016')
+    for record in records:
+        if record.get('id', '').lower() == identifier.lower():
+            return record
+
+    # Check if it's a composite ID (contains hyphen, e.g., 'Ajanta-1', 'Ellora-16', 'ajanta-016')
     if '-' in identifier:
         parts = identifier.split('-', 1)
         if len(parts) == 2:
             site, cave_num = parts
             for record in records:
-                if (record.get('site', '').lower() == site.lower() and 
-                    record.get('cave_no', '') == cave_num):
+                same_site = record.get('site', '').lower() == site.lower()
+                c_str = record.get('cave_no', '')
+                same_cave = (c_str == cave_num)
+                try:
+                    if int(c_str) == int(cave_num):
+                        same_cave = True
+                except ValueError:
+                    pass
+                if same_site and same_cave:
                     return record
     
     # Try matching as cave number only (returns first match)

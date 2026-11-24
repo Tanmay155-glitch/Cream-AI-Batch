@@ -144,20 +144,22 @@ class LeniGuideAgent:
                 f"- **Day 1 ({day1['weekday']}, {day1['date']}): Visit {day1['assigned_site']} Caves**",
                 f"  * *Reason:* {day1['closing_rule']}",
                 f"  * *Timings:* {day1['site_status']}",
-                "  * *Must-See Highlights:*",
             ]
-            for h in day1["must_see_highlights"]:
-                answer_parts.append(f"    - {h}")
+            if "must_see_highlights" in day1:
+                answer_parts.append("  * *Must-See Highlights:*")
+                for h in day1["must_see_highlights"]:
+                    answer_parts.append(f"    - {h}")
 
             if day2:
                 answer_parts.extend([
                     f"\n- **Day 2 ({day2['weekday']}, {day2['date']}): Visit {day2['assigned_site']} Caves**",
                     f"  * *Reason:* {day2['closing_rule']}",
                     f"  * *Timings:* {day2['site_status']}",
-                    "  * *Must-See Highlights:*",
                 ])
-                for h in day2["must_see_highlights"]:
-                    answer_parts.append(f"    - {h}")
+                if "must_see_highlights" in day2:
+                    answer_parts.append("  * *Must-See Highlights:*")
+                    for h in day2["must_see_highlights"]:
+                        answer_parts.append(f"    - {h}")
 
             answer_parts.extend([
                 "\n#### 2. Official ASI Entry Fee Calculation",

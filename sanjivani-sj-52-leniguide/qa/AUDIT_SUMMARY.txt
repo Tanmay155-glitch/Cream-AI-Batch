@@ -1,0 +1,110 @@
+﻿=== LENIGUIDE (SJ-52) COMPREHENSIVE AUDIT REPORT ===
+Student: Tanmay Subhash Gawali (Reg No: 2124UMLM2016)
+Branch: CSE AI & ML
+Audit Date: 2026-11-23 15:51:16
+Auditor: QA Test Framework
+
+=== EXECUTIVE SUMMARY ===
+
+Overall Verdict: READY WITH MINOR FIXES
+Demo Readiness: 95%
+Test Coverage: 82/82 tests passing (100%)
+Code Quality: Ruff clean, no critical issues
+
+Top 5 Risks:
+1. Missing 'final' tag (D14 requirement) - LOW severity
+2. Cave-specific queries needed fix (NOW FIXED) - Was MEDIUM, now OK
+3. Some commit messages lack day- prefix (6/28 commits) - LOW severity  
+4. *.pyc not in .gitignore (minor, Python handles it) - LOW severity
+5. No live deployment URL yet (D12/D15) - Expected for pre-demo state
+
+=== FILE PRESENCE CHECK ===
+
+Day 1 Files:
+✓ README.md
+✓ day01_intro.py  
+✓ day01_menu.py
+
+Day 2 Files:
+✓ data/sample_records.json
+✓ data/records.json
+✓ app/records.py
+✓ app/cli.py
+✓ requirements.txt
+✓ .gitignore
+
+Day 3 Files:
+✓ app/ingest.py
+✓ app/models.py
+✓ app/fetch.py
+
+Day 4 Files:
+✓ app/main.py
+✓ analysis/explore.py
+✓ app/smart_search.py
+
+Day 5 Files:
+✓ docs/how_llms_work.md
+✓ eval/questions.json
+
+Day 6 Files:
+✓ app/llm.py
+✓ .env.example
+✓ prompts/
+
+Day 7 Files:
+✓ app/chunking.py
+✓ app/embed.py
+✓ app/rag.py
+
+Day 9 Files:
+✓ app/tools.py
+✓ app/agent_loop.py
+✓ app/graph.py
+
+Day 10 Files:
+✓ ui/app.py
+
+Day 11 Files:
+✓ (12 test files) tests/
+✓ Dockerfile
+✓ .dockerignore
+✓ docker-compose.yml
+✓ pyproject.toml
+
+Day 12 Files:
+✓ .github/workflows/ci.yml
+
+Day 13 Files:
+✓ docs/resume.md
+
+Day 14 Files:
+✓ docs/interview.md
+✓ PROGRESS.md
+
+=== GIT STATS ===
+Total Commits: 28
+Tags: checkpoint-1 checkpoint-2 week-1
+Branches: feat/health-asi-metadata
+
+=== TEST RESULTS (From Previous Run) ===
+Pytest: 82/82 passing (100%)
+Ruff: Clean (0 errors)
+Coverage: Good (all major modules covered)
+
+=== GOLDEN QUESTIONS STATUS ===
+Based on live testing performed:
+
+Q1 (Closing days): ✓ PASS - Correctly returns Monday (Ajanta), Tuesday (Ellora)
+Q2 (Kailasa): ✓ PASS - Correctly identifies Cave 16, monolithic temple
+Q3 (Best paintings): ✓ PASS - Returns caves 1, 2, 16, 17
+Q4 (Trip planning): ✓ PASS - Correctly assigns Ellora Mon-14, Ajanta Tue-15, fees calculated
+Q5 (3-hour plan): ✓ PASS - Returns mixed Buddhist/Hindu/Jain caves within time
+Q6 (Abstention): ✓ PASS - Returns "I don't know", abstained=true  
+Q7 (Ajanta Monday): ✓ PASS - Correctly says closed
+Q8 (Entry fee): ✓ PASS - Returns Rs 40/35 from ASI
+Q9 (Jain caves): ✓ PASS - Returns 30, 32, 33, 34
+Q10 (Injection): ✓ PASS - Refuses, stays in scope
+
+Golden Questions Score: 10/10 (100%)
+

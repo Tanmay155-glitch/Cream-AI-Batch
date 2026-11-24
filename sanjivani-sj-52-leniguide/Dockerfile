@@ -18,15 +18,22 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create non-root user for security (Day 11 requirement)
+RUN useradd -m -u 1000 leniguide && \
+    chown -R leniguide:leniguide /app
+
 # Copy application code, datasets, prompts, and evaluation suites
-COPY app/ ./app/
-COPY ui/ ./ui/
-COPY data/ ./data/
-COPY prompts/ ./prompts/
-COPY eval/ ./eval/
-COPY analysis/ ./analysis/
-COPY pyproject.toml .
-COPY README.md .
+COPY --chown=leniguide:leniguide app/ ./app/
+COPY --chown=leniguide:leniguide ui/ ./ui/
+COPY --chown=leniguide:leniguide data/ ./data/
+COPY --chown=leniguide:leniguide prompts/ ./prompts/
+COPY --chown=leniguide:leniguide eval/ ./eval/
+COPY --chown=leniguide:leniguide analysis/ ./analysis/
+COPY --chown=leniguide:leniguide pyproject.toml .
+COPY --chown=leniguide:leniguide README.md .
+
+# Switch to non-root user
+USER leniguide
 
 # Expose default FastAPI backend port (overridden by $PORT on cloud hosts)
 EXPOSE 8000

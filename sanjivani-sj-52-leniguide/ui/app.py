@@ -26,39 +26,58 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# Ensure sys.modules does not shadow the 'app' package with this script file
+if "app" in sys.modules and not hasattr(sys.modules["app"], "__path__"):
+    del sys.modules["app"]
+
 DATA_DIR = PROJECT_ROOT / "data"
 FEEDBACK_FILE = DATA_DIR / "feedback.json"
 
 
 # ============================================================================
-# 1. MUST-SEE ROUTE DATA
+# 1. MUST-SEE ROUTE DATA (Loaded from data/routes.json)
 # ============================================================================
 
-AJANTA_ROUTE = [
-    {"cave": "Cave 1",  "star": True,  "mins": 25, "religion": "Buddhist", "period": "Mahayana", "highlight": "Padmapani & Vajrapani Bodhisattva murals, royal court scenes"},
-    {"cave": "Cave 2",  "star": True,  "mins": 20, "religion": "Buddhist", "period": "Mahayana", "highlight": "Miracle of Sravasti painting & ornate ceiling mandalas"},
-    {"cave": "Cave 9",  "star": False, "mins": 15, "religion": "Buddhist", "period": "Hinayana", "highlight": "Early Chaitya prayer hall with octagonal columns"},
-    {"cave": "Cave 10", "star": False, "mins": 15, "religion": "Buddhist", "period": "Hinayana", "highlight": "Oldest Chaitya hall (2nd c. BCE, 1819 John Smith rediscovery)"},
-    {"cave": "Cave 16", "star": True,  "mins": 25, "religion": "Buddhist", "period": "Vakataka", "highlight": "'Dying Princess' mural & Varahadeva donor inscription"},
-    {"cave": "Cave 17", "star": True,  "mins": 30, "religion": "Buddhist", "period": "Vakataka", "highlight": "Best-preserved Jataka murals & Wheel of Life ceiling"},
-    {"cave": "Cave 19", "star": True,  "mins": 25, "religion": "Buddhist", "period": "Mahayana", "highlight": "'Sculptured jewel' Chaitya facade with standing Buddha"},
-    {"cave": "Cave 26", "star": False, "mins": 25, "religion": "Buddhist", "period": "Mahayana", "highlight": "24-ft Mahaparinirvana (Reclining Buddha) rock sculpture"},
-]
+def load_routes_from_file():
+    """Load route data from data/routes.json following Day 10 requirements."""
+    routes_file = DATA_DIR / "routes.json"
+    if not routes_file.exists():
+        return {"ajanta": [], "ellora": []}
+    
+    try:
+        with open(routes_file, 'r', encoding='utf-8') as f:
+            routes_data = json.load(f)
+        return routes_data
+    except Exception as e:
+        st.warning(f"Could not load routes.json: {e}")
+        return {"ajanta": [], "ellora": []}
 
-ELLORA_ROUTE = [
-    {"cave": "Cave 5",  "star": False, "mins": 15, "religion": "Buddhist", "period": "",     "highlight": "Maharwada monastic hall with parallel stone benches"},
-    {"cave": "Cave 10", "star": True,  "mins": 20, "religion": "Buddhist", "period": "",     "highlight": "Vishwakarma (Carpenter's Cave) ribbed cathedral ceiling"},
-    {"cave": "Cave 12", "star": False, "mins": 20, "religion": "Buddhist", "period": "",     "highlight": "Teen Tal — three-storey monastery with seated Buddhas"},
-    {"cave": "Cave 14", "star": False, "mins": 15, "religion": "Hindu",    "period": "",     "highlight": "Ravan ki Khai sculptural panels of Vishnu & Shiva"},
-    {"cave": "Cave 15", "star": False, "mins": 15, "religion": "Hindu",    "period": "",     "highlight": "Dashavatara: Narasimha slaying Hiranyakashipu relief"},
-    {"cave": "Cave 16", "star": True,  "mins": 50, "religion": "Hindu",    "period": "",     "highlight": "Kailasa Temple — world's largest monolithic rock-cut monument"},
-    {"cave": "Cave 21", "star": True,  "mins": 15, "religion": "Hindu",    "period": "",     "highlight": "Rameshwara Cave & River Goddess Ganga bracket figure"},
-    {"cave": "Cave 29", "star": True,  "mins": 20, "religion": "Hindu",    "period": "",     "highlight": "Dhumar Lena cruciform Shiva cave near waterfall cliff"},
-    {"cave": "Cave 30", "star": False, "mins": 15, "religion": "Jain",     "period": "",     "highlight": "Chhota Kailasa monolithic shrine (smaller Kailasa echo)"},
-    {"cave": "Cave 32", "star": True,  "mins": 20, "religion": "Jain",     "period": "",     "highlight": "Indra Sabha double-storey temple (Matanga & Ambika)"},
-    {"cave": "Cave 33", "star": False, "mins": 15, "religion": "Jain",     "period": "",     "highlight": "Jagannatha Sabha & Parshvanatha sculptures"},
-    {"cave": "Cave 34", "star": False, "mins": 10, "religion": "Jain",     "period": "",     "highlight": "Intimate Parshvanatha & Gommateshwara shrine"},
-]
+
+def convert_route_to_ui_format(site_data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """
+    Convert routes.json format to UI display format.
+    routes.json has: {"walking_order": [{"order": 1, "cave_no": "1", "religion": "Buddhist", "minutes": 45, "star": true, "reason": "..."}]}
+    """
+    if not site_data or "walking_order" not in site_data:
+        return []
+    
+    ui_route = []
+    for item in site_data["walking_order"]:
+        ui_route.append({
+            "cave": f"Cave {item.get('cave_no', '?')}",
+            "star": item.get("star", False),
+            "mins": item.get("minutes", 0),
+            "religion": item.get("religion", ""),
+            "period": "",  # Period not in routes.json
+            "highlight": item.get("reason", "")
+        })
+    return ui_route
+
+
+# Load routes from data/routes.json (Day 10 requirement)
+ROUTES_DATA = load_routes_from_file()
+AJANTA_ROUTE = convert_route_to_ui_format(ROUTES_DATA.get("ajanta", {}))
+ELLORA_ROUTE = convert_route_to_ui_format(ROUTES_DATA.get("ellora", {}))
 
 RELIGION_COLORS = {
     "Buddhist": "#FF9800",
@@ -133,6 +152,9 @@ def call_backend(question: str, mode: str, backend_url: str,
 
     # Direct import fallback (no server needed)
     try:
+        if "app" in sys.modules and not hasattr(sys.modules["app"], "__path__"):
+            del sys.modules["app"]
+
         if mode == "agent":
             from app.graph import run_graph_agent
             return run_graph_agent(
