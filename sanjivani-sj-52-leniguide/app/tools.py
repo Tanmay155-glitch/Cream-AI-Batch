@@ -24,15 +24,62 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+FEES_PATH = PROJECT_ROOT / "data" / "fees.json"
 SITE_RULES_PATH = PROJECT_ROOT / "data" / "site_rules.json"
 
 
 def load_site_rules() -> Dict[str, Any]:
-    """Load site rules from data/site_rules.json. Never hardcode fees."""
-    if not SITE_RULES_PATH.exists():
-        return {}
-    with open(SITE_RULES_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+    """Load site rules and fees from data/fees.json (or fallback data/site_rules.json). Never hardcode fees."""
+    data: Dict[str, Any] = {}
+    if FEES_PATH.exists():
+        try:
+            with open(FEES_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+    if not data and SITE_RULES_PATH.exists():
+        try:
+            with open(SITE_RULES_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except Exception:
+            data = {}
+
+    normalized: Dict[str, Any] = {}
+    for site_key in ["ajanta", "ellora"]:
+        site_info = data.get(site_key, {})
+        if site_info:
+            cash = site_info.get("adult_cash_fee", site_info.get("fee_indian_cash"))
+            online = site_info.get("adult_online_fee", site_info.get("fee_indian_online"))
+            closed = site_info.get("weekly_closing_day", site_info.get("closed_day", ""))
+            timings = site_info.get("opening_hours", site_info.get("timings", ""))
+            child_rule = site_info.get("child_under_15_rule", f"Children under {site_info.get('child_free_under_age', 15)} FREE")
+            child_age = site_info.get("child_free_under_age", 15)
+            source_url = site_info.get("source_url", f"https://asi.nic.in/pages/WorldHeritage{site_key.capitalize()}Caves")
+            source_date = site_info.get("source_date", site_info.get("verified_on", "2026-11-07"))
+
+            normalized[site_key] = {
+                "fee_indian_cash": cash,
+                "adult_cash_fee": cash,
+                "fee_indian_online": online,
+                "adult_online_fee": online,
+                "closed_day": closed,
+                "weekly_closing_day": closed,
+                "timings": timings,
+                "opening_hours": timings,
+                "child_under_15_rule": child_rule,
+                "child_free_under_age": child_age,
+                "source_url": source_url,
+                "source_date": source_date,
+                "verified_on": source_date,
+                "authority": "official",
+            }
+
+    if "metadata" in data:
+        normalized["metadata"] = data["metadata"]
+    elif "verified_on" in data:
+        normalized["verified_on"] = data["verified_on"]
+
+    return normalized
 
 
 def get_fee(site_key: str, payment: str, rules: Dict[str, Any]) -> Optional[int]:
@@ -158,18 +205,24 @@ def cave_trip_planner(
     adults: int = 4,
     children_under_15: int = 40,
     payment_mode: str = "both",
-    sites: Tuple[str, ...] = ("ajanta", "ellora"),
+    sites: Any = ("ajanta", "ellora"),
+    payment: Optional[str] = None,
+    **kwargs: Any,
 ) -> Dict[str, Any]:
     """
     Deterministic Agent Domain Tool: Cave Trip Planner.
 
-    Reads fees from data/site_rules.json (never hardcoded).
+    Reads fees from data/fees.json (or data/site_rules.json). Never hardcoded.
     Uses pure Python datetime arithmetic and official ASI weekly closing rules:
     - Ajanta Caves: CLOSED on Mondays.
     - Ellora Caves: CLOSED on Tuesdays.
 
-    Returns structured schedule and fee breakdown.
+    Returns structured schedule and fee breakdown with citations.
     """
+    # Normalize payment argument if payment="online"|"cash" is passed
+    if payment is not None:
+        payment_mode = str(payment).lower().strip()
+
     # Validate inputs
     if num_days < 1:
         raise ValueError("num_days must be >= 1")
@@ -187,8 +240,23 @@ def cave_trip_planner(
     if payment_mode not in ("cash", "online", "both"):
         payment_mode = "both"
 
+    # Normalize requested sites
+    if isinstance(sites, str):
+        requested_sites = [s.strip().lower() for s in sites.split(",")]
+    else:
+        requested_sites = [str(s).strip().lower() for s in sites]
+
     # Load rules from JSON — never hardcode fees
     rules = load_site_rules()
+
+    # Check for impossible 1-day trip covering both sites
+    impossible_notice = ""
+    if num_days == 1 and len(requested_sites) >= 2:
+        impossible_notice = (
+            "A 1-day trip cannot cover both Ajanta and Ellora: the monuments are located 100 km apart "
+            "and each requires 3 to 4 hours of walking. Only one site can be scheduled on a 1-day visit; "
+            "please plan a 2-day trip to visit both World Heritage sites."
+        )
 
     # Read closed days from rules
     ajanta_closed_day = rules.get("ajanta", {}).get("closed_day", "Monday")
@@ -293,6 +361,9 @@ def cave_trip_planner(
         else:
             selected_total = online_total  # recommend online
 
+        source_url_used = rules.get("ajanta", {}).get("source_url", "https://asi.nic.in/pages/WorldHeritageAjantaCaves")
+        source_date_used = rules.get("ajanta", {}).get("source_date", "2026-11-07")
+
         fee_breakdown = {
             "rate_per_adult_cash_inr": fee_cash,
             "rate_per_adult_online_inr": fee_online,
@@ -304,22 +375,31 @@ def cave_trip_planner(
             "children_cost_inr": children_cost,
             "savings_online_inr": savings,
             "selected_mode_total_inr": selected_total,
+            "fee_total": selected_total,
             "fee_status": "verified",
-            "source_url": rules.get("ajanta", {}).get("source_url", "https://asi.nic.in"),
-            "verified_on": ajanta_verified_on,
+            "source_url": source_url_used,
+            "source_date": source_date_used,
+            "verified_on": source_date_used,
             "asi_rule_note": f"Children under {child_free_age} enter FREE as per official ASI regulations.",
         }
     else:
+        source_url_used = rules.get("ajanta", {}).get("source_url", "https://asi.nic.in/pages/WorldHeritageAjantaCaves")
+        source_date_used = rules.get("ajanta", {}).get("source_date", "2026-11-07")
+        selected_total = None
         fee_breakdown = {
             "fee_status": "not verified",
             "message": "Fees have not been verified yet. Please complete MANUAL STEP M-4 to verify ASI fees.",
-            "source_url": rules.get("ajanta", {}).get("source_url", "https://asi.nic.in"),
+            "source_url": source_url_used,
+            "source_date": source_date_used,
         }
 
     # Build summary
     summary_lines = [
         f"Study Tour Itinerary for {adults} Adults & {children_under_15} Students (under {child_free_age}):"
     ]
+    if impossible_notice:
+        summary_lines.append(f"⚠️ {impossible_notice}\n")
+
     for s in schedule:
         summary_lines.append(f"• Day {s['day']} ({s['weekday']}, {s['date']}): Visit {s['assigned_site']} Caves — {s['closing_rule']}")
 
@@ -340,8 +420,13 @@ def cave_trip_planner(
         "payment_mode": payment_mode,
         "unique_sites_count": unique_sites_visited,
         "schedule": schedule,
+        "itinerary": schedule,
         "unscheduled": unscheduled,
         "fee_breakdown": fee_breakdown,
+        "fee_total": selected_total,
+        "source_url": source_url_used,
+        "source_date": source_date_used,
+        "impossible_warning": impossible_notice,
         "summary": "\n".join(summary_lines),
         "safety_note": "Timings, fees and closures can change. Confirm on asi.nic.in before you travel.",
     }

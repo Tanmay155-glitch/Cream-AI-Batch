@@ -1,0 +1,122 @@
+﻿=== LENIGUIDE CODE INVENTORY ===
+Generated: 2026-11-23 16:10:47
+
+=== READ-ALLOWED FILES ===
+(Python, JSON, YAML, Docker, config files)
+
+--- Python Files ---
+day01_intro.py | Size: 1230 bytes | Lines: 31
+day01_menu.py | Size: 2653 bytes | Lines: 67
+test_chat.py | Size: 1705 bytes | Lines: 34
+.pytest_cache\.gitignore | Size: 37 bytes | Lines: 2
+analysis\explore.py | Size: 9809 bytes | Lines: 254
+app\agent_loop.py | Size: 12597 bytes | Lines: 234
+app\cache.py | Size: 3398 bytes | Lines: 78
+app\chunking.py | Size: 21535 bytes | Lines: 476
+app\cli.py | Size: 7558 bytes | Lines: 217
+app\embed.py | Size: 18120 bytes | Lines: 387
+app\fetch.py | Size: 13320 bytes | Lines: 326
+app\graph.py | Size: 24000 bytes | Lines: 500
+app\ingest.py | Size: 12274 bytes | Lines: 356
+app\llm.py | Size: 29394 bytes | Lines: 519
+app\main.py | Size: 34815 bytes | Lines: 843
+app\models.py | Size: 6967 bytes | Lines: 199
+app\observability.py | Size: 3986 bytes | Lines: 93
+app\rag.py | Size: 23507 bytes | Lines: 434
+app\records.py | Size: 8192 bytes | Lines: 229
+app\routes.py | Size: 6016 bytes | Lines: 138
+app\security.py | Size: 2409 bytes | Lines: 56
+app\smart_search.py | Size: 11595 bytes | Lines: 317
+app\tools.py | Size: 19011 bytes | Lines: 413
+app\vectorstore.py | Size: 11986 bytes | Lines: 288
+app\__init__.py | Size: 422 bytes | Lines: 12
+data\sample_records.py | Size: 15384 bytes | Lines: 233
+eval\run_eval.py | Size: 14128 bytes | Lines: 263
+scripts\benchmark.py | Size: 4735 bytes | Lines: 108
+scripts\check_no_secrets.py | Size: 3203 bytes | Lines: 83
+tests\conftest.py | Size: 4336 bytes | Lines: 95
+tests\test_agent_tool.py | Size: 3439 bytes | Lines: 76
+tests\test_api.py | Size: 2386 bytes | Lines: 59
+tests\test_api_and_rag.py | Size: 3712 bytes | Lines: 67
+tests\test_day06_llm.py | Size: 3552 bytes | Lines: 70
+tests\test_day09_agent.py | Size: 9079 bytes | Lines: 185
+tests\test_day10_ui.py | Size: 8419 bytes | Lines: 190
+tests\test_planner.py | Size: 4208 bytes | Lines: 93
+tests\test_rag.py | Size: 3222 bytes | Lines: 59
+tests\test_records.py | Size: 2339 bytes | Lines: 53
+tests\test_records_and_search.py | Size: 3660 bytes | Lines: 62
+tests\test_security.py | Size: 1811 bytes | Lines: 38
+tests\test_security_and_obs.py | Size: 6028 bytes | Lines: 125
+tests\__init__.py | Size: 38 bytes | Lines: 1
+ui\app.py | Size: 23209 bytes | Lines: 460
+
+--- JSON Files ---
+data\feedback.json | Size: 3 bytes | Lines: 1
+data\questions.json | Size: 6107 bytes | Lines: 102
+data\records.json | Size: 14257 bytes | Lines: 222
+data\routes.json | Size: 3970 bytes | Lines: 34
+data\sample_records.json | Size: 14257 bytes | Lines: 222
+data\site_rules.json | Size: 829 bytes | Lines: 24
+eval\eval_set.json | Size: 7785 bytes | Lines: 247
+eval\questions.json | Size: 6107 bytes | Lines: 102
+
+--- Config Files ---
+.gitignore | Size: 1050 bytes | Lines: 63
+docker-compose.yml | Size: 784 bytes | Lines: 29
+Dockerfile | Size: 1434 bytes | Lines: 33
+pyproject.toml | Size: 991 bytes | Lines: 33
+render.yaml | Size: 507 bytes | Lines: 19
+requirements.txt | Size: 767 bytes | Lines: 27
+requirements_pinned.txt | Size: 4560 bytes | Lines: 121
+.github\workflows\ci.yml | Size: 1252 bytes | Lines: 39
+.pytest_cache\.gitignore | Size: 37 bytes | Lines: 2
+.ruff_cache\.gitignore | Size: 35 bytes | Lines: 2
+
+--- Data Files ---
+data\raw\ajanta_asi.html | Size: 2208 bytes | (data file)
+data\raw\caves_wikipedia.html | Size: 1945 bytes | (data file)
+data\raw\ellora_asi.html | Size: 2924 bytes | (data file)
+tests\fixtures\sample_asi_page.html | Size: 489 bytes | (data file)
+
+=== MARKDOWN FILES (NOT CHECKED) ===
+CAVE_QUERY_FIX.md
+FINAL_SUMMARY.md
+HOW_TO_USE.md
+PROGRESS.md
+README.md
+SERVICES_RUNNING.md
+.pytest_cache\README.md
+data\raw\unofficial\README.md
+docs\checkpoint_2_demo.md
+docs\demo_script.md
+docs\how_llms_work.md
+docs\interview.md
+docs\resume.md
+eval\eval_results.md
+eval\prompt_compare.md
+eval\search_results.md
+prompts\system.md
+prompts\task_answer.md
+prompts\task_plan.md
+
+=== FORBIDDEN FILES (NOT CHECKED) ===
+START_PROJECT.bat (image/binary/other)
+.pytest_cache\CACHEDIR.TAG (image/binary/other)
+.pytest_cache\v\cache\lastfailed (image/binary/other)
+.pytest_cache\v\cache\nodeids (image/binary/other)
+.ruff_cache\CACHEDIR.TAG (image/binary/other)
+.ruff_cache\0.17.5\12443061973644613517 (image/binary/other)
+.ruff_cache\0.17.5\15336925920074749077 (image/binary/other)
+.ruff_cache\0.17.5\15751459431852983307 (image/binary/other)
+.ruff_cache\0.17.5\1773469664689882492 (image/binary/other)
+.ruff_cache\0.17.5\4960841990282701003 (image/binary/other)
+.ruff_cache\0.17.5\5415936524035543859 (image/binary/other)
+.ruff_cache\0.17.5\9819851809365384184 (image/binary/other)
+docs\leniguide_ui_preview.svg (image/binary/other)
+
+=== SUMMARY ===
+Read-allowed files: 71
+Markdown files (skipped): 19
+Forbidden files: 13
+Total inventoried: 103
+

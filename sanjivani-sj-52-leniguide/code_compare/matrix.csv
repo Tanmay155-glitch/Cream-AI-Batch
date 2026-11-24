@@ -1,0 +1,57 @@
+ID,Requirement,Verdict,File:Line,Evidence,Gap,Fix
+R-01,day01_intro.py with variables f-strings input(),MET,day01_intro.py:1-30,Has variables (project_name student) f-strings in print() input() for user_name,None,-
+R-02,day01_menu.py with while loop menu,MET,day01_menu.py:30-80,Has while True loop menu options 1/2/3/0 if/elif logic for closed day check,None,-
+R-03,Sample records: 20 records with 6 fields,MET,data/records.json:all,20 records present all have site cave_no religion_period highlights visit_info source_url,None,-
+R-04,Exact cave numbers Ajanta 8 Ellora 12,MET,data/records.json,Ajanta (8): 1,2,9,10,16,17,19,26 ✓ Ellora (12): 5,10,12,14,15,16,21,29,30,32,33,34 ✓ Kailasa=Ellora 16 ✓,None,-
+R-05,app/records.py with 4 functions,MET,app/records.py:10-140,All 4 functions present with real logic. get_by_id returns None for missing (no crash),None,-
+R-06,app/cli.py calls records functions,MET,app/cli.py:20-150,Has argparse commands: list search count get - all call records.py functions,None,-
+R-07,requirements.txt .gitignore,MET,"requirements.txt, .gitignore",requirements.txt has 20+ packages. .gitignore contains .venv .env __pycache__,None,-
+R-08,app/ingest.py parses HTML,MET,app/ingest.py:50-200,Uses BeautifulSoup4 has try/except around row parsing writes to data/records.json,None,-
+R-09,data/raw/ holds ASI pages,MET,data/raw/*.html,Contains ajanta_asi.html (53KB) and ellora_asi.html (61KB),None,-
+R-10,app/models.py Record dataclass,MET,app/models.py:15-25,Has @dataclass Record with 6 fields,None,-
+R-11,app/fetch.py requests timeout 3+ docs,MET,app/fetch.py:30-120,requests.get with timeout=30 handles RequestException downloads 3 URLs,None,-
+R-12,FastAPI with 5 endpoints,MET,app/main.py:40-200,All 5 endpoints present. /records/{id} raises HTTPException(404) if not found,None,-
+R-13,app/smart_search.py TF-IDF,MET,"app/smart_search.py:20-80, app/main.py:150",Uses sklearn TfidfVectorizer + cosine_similarity. /search calls smart_search(),None,-
+R-14,analysis/explore.py pandas 3 facts,MET,analysis/explore.py:10-50,Loads records with pandas prints: total count site distribution religion breakdown,None,-
+R-15,10 questions Q6 unanswerable,MET,eval/questions.json:all,Has 10 questions Q6 (Diwali tourists) has answerable: false,None,-
+R-16,app/llm.py keys from env only,MET,app/llm.py:30-200,Supports Groq (os.getenv) and Gemini (os.getenv). Scanned all files: NO hardcoded keys,None,-
+R-17,.env.example no .env tracked,MET,".env.example, git ls-files",.env.example has placeholders. git ls-files | grep .env$ returns empty,None,-
+R-18,POST /chat with answer confidence follow_up,MET,app/main.py:220-260,ChatResponse model has all 3 fields. Endpoint returns all,None,-
+R-19,System prompt restricts domain forbids inventing,MET,prompts/system.txt:1-20,System prompt: scope=Ajanta/Ellora never invent fees/timings respond I don't know when sources lack data. 2 task prompts exist,None,-
+R-20,Fake/offline LLM for tests,BONUS,"app/llm.py:180, tests/conftest.py",Has FakeLLM class for deterministic testing. Tests use LLM_PROVIDER=fake,None,-
+R-21,Chunks carry source page title metadata,MET,app/chunking.py:80-150,Chunks have metadata: source page title site cave_no authority source_date,None,-
+R-22,app/embed.py creates embeddings,MET,app/embed.py:40-120,Tries SentenceTransformer falls back to DenseHashVectorizer (deterministic NumPy),None,-
+R-23,Vector store indexes and queries,MET,app/rag.py:60-80,Uses in-memory vector store (not Chroma persistent due to dependency issues) but indexing + query functional,None,-
+R-24,GET /search/semantic exists,MET,app/main.py:280-300,/search/semantic endpoint exists calls semantic_search from embed.py,None,-
+R-25,app/rag.py retrieves builds prompt calls LLM returns citations,MET,app/rag.py:100-250,retrieve_context() gets chunks build_rag_prompt() formats them generate_chat_response() calls LLM format_citations() returns source/title/URL,None,-
+R-26,POST /ask calls RAG pipeline,MET,app/main.py:150-180,/ask endpoint calls answer_question() from rag.py,None,-
+R-27,I don't know path with code guard,MET,app/rag.py:40-55,is_unanswerable_query() checks OUT_OF_SCOPE_PATTERNS. If matched returns I don't know with abstained=true WITHOUT calling LLM (bypassed),None,-
+R-28,eval_set.json 15 rows run_eval.py 2 configs,PARTIAL,eval/eval_set.json:all,eval_set.json has 15 questions. Missing: eval/run_eval.py not found (only run_full_eval.py),eval/run_eval.py file missing,Create evaluation runner with 2 configs
+R-29,Data carries authority marker,MET,"app/chunking.py:120-130, data/site_rules.json",Chunks have is_official_asi=True for ASI sources. site_rules.json has authority=official,None,-
+R-30,ASI ranks first for time-sensitive facts,MET,app/rag.py:95-110,Re-ranking logic: if query contains fee/cost/ticket/closed/timing chunks with is_asi=True get +0.08 score boost,None,-
+R-31,Answers include source date,PARTIAL,"data/records.json, app/rag.py:130",Records have source_date=2026-11. Citations include source_date in metadata. But some responses don't prominently show it in answer text,Date present in metadata but not always in answer,Format answer to include as of [date]
+R-32,Cave numbers consistent,MET,"data/records.json, data/routes.json",Kailasa is Ellora cave_no=16 in all files. No duplicate/conflicting cave numbers found,None,-
+R-33,Old fees absent or labeled unofficial,MET,"data/site_rules.json, app/rag.py",Current fees: Rs 40 cash / Rs 35 online (ASI). No Rs 10/30 in records. Re-ranking ensures ASI wins,None,-
+R-34,cave_trip_planner with date days group payment,MET,app/tools.py:80-250,cave_trip_planner(start_date num_days num_adults num_children payment_mode) exists,None,-
+R-35,Closing rules Ajanta Mon Ellora Tue never on closed day,MET,app/tools.py:120-180,weekday 0=Mon (Ajanta closed) weekday 1=Tue (Ellora closed). Traced: Mon 2026-12-14 start → Ellora 14 Dec (Mon) Ajanta 15 Dec (Tue) ✓,None,-
+R-36,Fee total adults pay children <15 free,MET,app/tools.py:200-230,Logic: if age < 15: free. Adults × fee × sites. Traced: 4 adults + 40 children (<15) × 2 sites → 4×40×2=Rs320 cash 4×35×2=Rs280 online ✓,None,-
+R-37,Planner uses datetime handles invalid None fee not 0,MET,"app/tools.py:90-110, 240-260",Uses datetime.strptime raises ValueError on bad dates/negative days. If fee is None returns fee not verified (not 0),None,-
+R-38,Agent loop calls RAG + planner with step limit,MET,app/agent_loop.py:50-180,Has step loop (max_steps=10) can call both answer_question (RAG) and cave_trip_planner,None,-
+R-39,LangGraph with memory and approval step,PARTIAL,app/graph.py:40-150,Uses StateGraph has MemorySaver checkpointer (memory with thread_id). Approval step not clearly identified - has interrupt but needs verification,Approval/interrupt step unclear,Add explicit approval node or verify existing interrupt
+R-40,Streamlit calls /ask displays citations stores feedback,MET,ui/app.py:80-200,Calls /ask endpoint displays citations with source/URL saves thumbs up/down to data/feedback.json,None,-
+R-41,Route strip 5 stars per site minutes 3-4h total,MET,"data/routes.json, ui/app.py:120-160",Ajanta: 5 caves starred total 220 min starred (3.67h) ✓ Ellora: 5 caves starred total 240 min starred (4h) ✓,None,-
+R-42,Safety note shown in UI or API,MET,"ui/app.py:40, app/main.py:380",UI displays safety note: Timings fees and closures can change. API /health includes note,None,-
+R-43,8+ pytest tests cover records search /health /ask planner,MET,tests/*.py,12 test files 82 total tests. Covers: test_records (9) test_api (8) test_rag (4) test_planner (8) test_security (3),None,-
+R-44,Ruff config or clean check,MET,pyproject.toml:30-50,Ruff config present. Last ruff check output: 0 errors,None,-
+R-45,Dockerfile non-root .dockerignore docker-compose API+UI,MET,"Dockerfile:20-40, docker-compose.yml:all",Dockerfile: non-root user leniguide no .env COPY. .dockerignore excludes .venv/.env. docker-compose: api + ui services,None,-
+R-46,CI workflow ruff pytest docker build,MET,.github/workflows/ci.yml:10-60,Triggers: push/pull_request. Jobs: ruff check pytest docker build. No real secrets (uses fake LLM),None,-
+R-47,Deployment config port CORS,UNVERIFIABLE,app/main.py:30,Has CORS middleware. Port from $PORT env var. Live URL/badge/PR → manual check needed,-,Manual: Check live URL CI badge merged PR
+R-48,Latency token logging no secrets logged,MET,"app/main.py:360-380, app/llm.py:150",Logs JSON with event latency_ms tokens cost. No secrets in log format,None,-
+R-49,Simple cache for answers,MET,app/rag.py:280-300,Has _ANSWER_CACHE dict with TTL checking. Cache hit returns stored answer,None,-
+R-50,Input limits return 4xx not 500,MET,"app/security.py:20-40, app/main.py:140",validate_query_length() checks max 2000 chars raises HTTPException(400). Prompt injection check raises 400,None,-
+R-51,Prompt injection test asserts no leak,MET,tests/test_security.py:30-60,test_prompt_injection_blocked() sends malicious prompts asserts 400 response (blocked) no system prompt in response,None,-
+R-52,No API key literals in code,MET,(all files scanned),Scanned for gsk_ AIza sk- api_key= Bearer token patterns. Result: 0 matches ✅ CRITICAL PASS,None,-
+R-53,Only official public sources cited,MET,(all source_url fields),Sources: https://asi.nic.in (official ASI) https://en.wikipedia.org (reference). No unofficial blogs/commercial sites,None,-
+R-54,No leftover template content,MET,(all files scanned),Grep for CaneMitra SuryaGhar sugarcane Mandi solar. Result: 0 matches. All content is Ajanta/Ellora specific,None,-
+R-55,Network calls have timeouts no bare except no print secrets,MET,"app/fetch.py:40, app/llm.py:80",requests.get(timeout=30). No bare except: found. No print() of keys/tokens,None,-
+R-56,App not hard-limited to 6 questions,MET,"app/rag.py, app/main.py",/ask and /chat endpoints accept any question. No whitelist check. Only OUT_OF_SCOPE patterns trigger abstention,None,-

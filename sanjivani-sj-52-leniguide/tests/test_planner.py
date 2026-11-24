@@ -112,3 +112,37 @@ def test_null_fee_returns_not_verified():
         fb = plan["fee_breakdown"]
         assert fb["fee_status"] == "not verified"
         assert "cash_total_inr" not in fb
+
+
+def test_planner_payment_parameter_and_sources():
+    """Verify payment='online' parameter, fee_total, and source_url/source_date provenance."""
+    from app.tools import cave_trip_planner
+    plan = cave_trip_planner(
+        start_date="2026-12-14",
+        num_days=2,
+        adults=4,
+        children_under_15=40,
+        payment="online",
+        sites=["ajanta", "ellora"],
+    )
+    assert plan["fee_total"] == 4 * 35 * 2  # 280
+    assert "source_url" in plan
+    assert "asi.nic.in" in plan["source_url"]
+    assert "source_date" in plan
+    assert "itinerary" in plan
+    assert len(plan["itinerary"]) == 2
+
+
+def test_one_day_impossible_warning():
+    """Verify impossible case warning when 1-day trip is requested for both sites."""
+    from app.tools import cave_trip_planner
+    plan = cave_trip_planner(
+        start_date="2026-12-14",
+        num_days=1,
+        adults=4,
+        sites=["ajanta", "ellora"],
+    )
+    assert "impossible_warning" in plan
+    assert len(plan["impossible_warning"]) > 0
+    assert "100 km" in plan["impossible_warning"]
+

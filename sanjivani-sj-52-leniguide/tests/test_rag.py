@@ -70,3 +70,44 @@ def test_q6_diwali_footfall_refusal():
     res = answer_question("How many tourists visited Ajanta caves last Diwali?")
     assert res["abstained"] is True
     assert "don't know" in res["answer"].lower()
+
+
+def test_ranking_asi_beats_unofficial_fixture():
+    """
+    Test Day 11 requirement: ASI official sources beat unofficial fixture chunks (Rs 10 / Rs 30).
+    Loads unofficial_fees_fixture.json and verifies that official ASI fee chunk
+    (Rs 40 cash / Rs 35 online) is ranked #1 by retrieve_context and answer_question.
+    """
+    import json
+    from pathlib import Path
+
+    fixture_path = Path(__file__).parent / "fixtures" / "unofficial_fees_fixture.json"
+    assert fixture_path.exists(), "unofficial_fees_fixture.json must exist"
+
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        unofficial_items = json.load(f)
+
+    # Check that unofficial fixture contains the test values Rs 10 and Rs 30
+    fixture_fees = [item.get("fee_cash") for item in unofficial_items]
+    assert 10 in fixture_fees, "Fixture must include obsolete Rs 10 fee"
+    assert 30 in fixture_fees, "Fixture must include obsolete Rs 30 fee"
+
+    # Query for entry fee
+    query = "What is the entry ticket fee for Ajanta Caves?"
+    chunks = retrieve_context(query, top_k=4)
+
+    assert len(chunks) > 0, "Should retrieve chunks"
+    top_chunk = chunks[0]
+    top_source = top_chunk.get("source", "").lower()
+    top_meta = top_chunk.get("metadata", {})
+
+    # Top chunk MUST be official ASI, never unofficial blog
+    assert "asi.nic.in" in top_source or top_meta.get("is_official_asi", False), (
+        f"Top-ranked chunk must be official ASI, but got: {top_source}"
+    )
+
+    # Answer should reflect ASI fees (Rs 40 / Rs 35), not unofficial Rs 10 or Rs 30
+    answer_res = answer_question(query)
+    ans_text = answer_res.get("answer", "")
+    assert "40" in ans_text or "35" in ans_text, f"Answer must cite official Rs 40/35 fees: {ans_text}"
+

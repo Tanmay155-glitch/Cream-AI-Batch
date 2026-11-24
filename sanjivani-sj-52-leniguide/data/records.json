@@ -8,7 +8,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-001",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ajanta",
@@ -19,7 +21,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-002",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ajanta",
@@ -30,7 +34,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-009",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ajanta",
@@ -41,7 +47,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-010",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ajanta",
@@ -52,7 +60,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-016",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ajanta",
@@ -63,7 +73,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-017",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ajanta",
@@ -74,7 +86,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-019",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ajanta",
@@ -85,7 +99,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageAjantaCaves",
     "id": "ajanta-026",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -96,7 +112,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-005",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -107,7 +125,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-010",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -118,7 +138,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-012",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -129,7 +151,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-014",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -140,7 +164,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-015",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -151,7 +177,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-016",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -162,7 +190,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-021",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -173,7 +203,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-029",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -184,7 +216,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-030",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -195,7 +229,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-032",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -206,7 +242,9 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-033",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   },
   {
     "site": "Ellora",
@@ -217,6 +255,8 @@
     "source_url": "https://asi.nic.in/pages/WorldHeritageElloraCaves",
     "id": "ellora-034",
     "source_date": "2026-11",
-    "authority": "official"
+    "authority": "official",
+    "source_type": "official",
+    "authority_rank": 1
   }
 ]

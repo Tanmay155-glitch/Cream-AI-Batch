@@ -1,0 +1,47 @@
+[
+  {
+    "id": "unofficial-blog-ajanta-01",
+    "site": "Ajanta",
+    "chunk_id": "unofficial-mapsofindia-ajanta-fee-01",
+    "text": "Ajanta Caves Entry Fee: Entry ticket for Indian tourists is just Rs 10 per person cash at the counter. Open all days from 9 AM to 5 PM.",
+    "fee_cash": 10,
+    "fee_online": null,
+    "source": "https://www.mapsofindia.com/tourism/ajanta-caves.html",
+    "source_url": "https://www.mapsofindia.com/tourism/ajanta-caves.html",
+    "source_type": "unofficial",
+    "authority_rank": 3,
+    "source_date": "2015-04",
+    "is_official_asi": false,
+    "note": "Deliberately outdated blog entry citing obsolete Rs 10 fee to test authority-based re-ranking."
+  },
+  {
+    "id": "unofficial-photo-ajanta-02",
+    "site": "Ajanta",
+    "chunk_id": "unofficial-siaphotography-ajanta-fee-02",
+    "text": "Visiting Ajanta World Heritage Monument: The entry fee is Rs 30 for Indians. You can buy tickets at the booking counter near the bus drop-off.",
+    "fee_cash": 30,
+    "fee_online": null,
+    "source": "https://siaphotography.in/blog/ajanta-caves-world-heritage-monument/",
+    "source_url": "https://siaphotography.in/blog/ajanta-caves-world-heritage-monument/",
+    "source_type": "unofficial",
+    "authority_rank": 3,
+    "source_date": "2018-09",
+    "is_official_asi": false,
+    "note": "Deliberately outdated travel blog citing obsolete Rs 30 fee to test authority-based re-ranking."
+  },
+  {
+    "id": "unofficial-blog-ellora-03",
+    "site": "Ellora",
+    "chunk_id": "unofficial-touristguide-ellora-timing-03",
+    "text": "Ellora Caves Visiting Hours: Open every day from 8 AM to 5 PM including Tuesdays. Entry ticket Rs 20.",
+    "fee_cash": 20,
+    "fee_online": null,
+    "source": "https://www.travelblog-india.example/ellora-caves-guide",
+    "source_url": "https://www.travelblog-india.example/ellora-caves-guide",
+    "source_type": "unofficial",
+    "authority_rank": 3,
+    "source_date": "2016-12",
+    "is_official_asi": false,
+    "note": "Deliberately incorrect Tuesday open status and obsolete Rs 20 fee."
+  }
+]
