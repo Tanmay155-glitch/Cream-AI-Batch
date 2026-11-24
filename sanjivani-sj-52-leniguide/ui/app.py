@@ -290,6 +290,33 @@ def main():
             help="FastAPI server URL. Falls back to direct import if server is not running."
         )
 
+        with st.expander("🔑 LLM API Key (Optional)", expanded=False):
+            st.caption("Paste your API key here or configure in `sanjivani-sj-52-leniguide/.env`")
+            curr_prov = os.getenv("LLM_PROVIDER", "groq").lower()
+            selected_provider = st.selectbox("Provider", ["groq", "gemini"], index=0 if curr_prov == "groq" else 1)
+            if selected_provider == "groq":
+                groq_val = st.text_input(
+                    "Groq API Key",
+                    type="password",
+                    value=os.getenv("GROQ_API_KEY", "") if not os.getenv("GROQ_API_KEY", "").startswith("your_") else "",
+                    help="Free key at https://console.groq.com/keys"
+                )
+                if groq_val:
+                    os.environ["GROQ_API_KEY"] = groq_val.strip()
+                    os.environ["LLM_PROVIDER"] = "groq"
+                    st.success("✅ Groq key set for session")
+            else:
+                gemini_val = st.text_input(
+                    "Gemini API Key",
+                    type="password",
+                    value=os.getenv("GEMINI_API_KEY", "") if not os.getenv("GEMINI_API_KEY", "").startswith("your_") else "",
+                    help="Key at https://aistudio.google.com/app/apikey"
+                )
+                if gemini_val:
+                    os.environ["GEMINI_API_KEY"] = gemini_val.strip()
+                    os.environ["LLM_PROVIDER"] = "gemini"
+                    st.success("✅ Gemini key set for session")
+
         st.divider()
 
         # Sample Questions
